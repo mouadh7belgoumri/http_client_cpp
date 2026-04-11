@@ -1,6 +1,6 @@
 
 
-function ReqSideBar() {
+function ReqListSideBar() {
     return (
         <>
             <div className="w-64 bg-gray-800 border-r border-gray-700 p-4 flex flex-col">
@@ -13,4 +13,4 @@ function ReqSideBar() {
     )
 }
 
-export default ReqSideBar
+export default ReqListSideBar
