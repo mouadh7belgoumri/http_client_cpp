@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10.0)
 project(desktop_backend VERSION 0.1.0 LANGUAGES C CXX)
+find_package(SQLiteCpp CONFIG REQUIRED)
 include(FetchContent)
 FetchContent_Declare(
     webview
@@ -13,7 +14,7 @@ FetchContent_Declare(
     )
 FetchContent_MakeAvailable(json)
 add_executable(desktop_backend src/main.cpp)
-target_link_libraries(desktop_backend PRIVATE webview::core nlohmann_json::nlohmann_json)
+target_link_libraries(desktop_backend PRIVATE webview::core nlohmann_json::nlohmann_json SQLiteCpp)
 
 
 include(CTest)
