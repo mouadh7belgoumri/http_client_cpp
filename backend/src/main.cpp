@@ -7,44 +7,49 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <fstream>
 
-void say_hello()
-{
-    std::cout << "Hello, World!" << std::endl;
-}
+
 void spinup_srv()
 {
-    httplib::Server svr;
-
-    svr.Get("/hello", [](const httplib::Request &, httplib::Response &res) {
-        res.set_content("Hello World!", "text/plain");
-    });
-
-    std::cout << "Server is running on http://0.0.0.0:8080" << std::endl;
-    std::cout << "Press Ctrl+C to stop the server." << std::endl;
-    std::cout << "this server runs on a seperate thread, so the webview can run concurrently" << std::endl;
-    svr.listen("0.0.0.0", 8080);   
+    httplib::Client cli("localhost", 8080);
 }
+void spinup_and_pupulate_req_db(){
+    SQLite::Database db("requests.db", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
+    db.exec("CREATE TABLE IF NOT EXISTS requests (id INTEGER PRIMARY KEY, method TEXT, path TEXT, headers TEXT, body TEXT)");
+    db.exec("INSERT INTO requests (method, path, headers, body) VALUES ('GET', '/api/data', '{\"Content-Type\": \"application/json\"}', '{\"key\": \"value\"}')");
+}
+
+
 
 using json = nlohmann::json;
 
 int main(int, char **)
-{
-
-    std::thread t(say_hello);
-    std::thread lsrv(spinup_srv);
-    webview::webview w(true, nullptr);
+{   
+    spinup_and_pupulate_req_db();
+    webview::webview w(false, nullptr);
     w.set_title("http_client_cpp");
     w.set_size(1200, 900, WEBVIEW_HINT_NONE);
     w.set_html(html);
     w.bind("makeFile", [&](std::string arg) ->std::string {
         json j = json::parse(arg);
-        std::cout << "hello from cpp, arg: " << std::endl;
-        std::cout << arg << std::endl;
-        return "good! it worked!";
+        return json({{"message", "hello it worked, you sent:"}, {"data", j}}).dump();
+    });
+    w.bind("getRequests", [&](std::string arg) ->std::string {
+        SQLite::Database db("requests.db", SQLite::OPEN_READONLY);
+        SQLite::Statement query(db, "SELECT method, path, headers, body FROM requests");
+        json j = json::array();
+        while (query.executeStep()) {
+            json req = {
+                {"method", query.getColumn(0).getString()},
+                {"path", query.getColumn(1).getString()},
+                {"headers", json::parse(query.getColumn(2).getString())},
+                {"body", json::parse(query.getColumn(3).getString())}
+            };
+            j.push_back(req);
+            std::cout << "Fetched request: " << req.dump(4) << std::endl;
+        }
+        return j.dump(4);
     });
     
     w.run();
-    t.join();
-    lsrv.join();
     return 0;
 }
