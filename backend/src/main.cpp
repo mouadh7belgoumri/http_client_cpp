@@ -5,7 +5,7 @@
 #include <nlohmann/json.hpp>
 #include <thread>
 #include <SQLiteCpp/SQLiteCpp.h>
-
+#include <fstream>
 
 void say_hello()
 {
@@ -32,10 +32,17 @@ int main(int, char **)
 
     std::thread t(say_hello);
     std::thread lsrv(spinup_srv);
-    webview::webview w(false, nullptr);
+    webview::webview w(true, nullptr);
     w.set_title("http_client_cpp");
     w.set_size(1200, 900, WEBVIEW_HINT_NONE);
     w.set_html(html);
+    w.bind("makeFile", [&](std::string arg) ->std::string {
+        json j = json::parse(arg);
+        std::cout << "hello from cpp, arg: " << std::endl;
+        std::cout << arg << std::endl;
+        return "good! it worked!";
+    });
+    
     w.run();
     t.join();
     lsrv.join();
