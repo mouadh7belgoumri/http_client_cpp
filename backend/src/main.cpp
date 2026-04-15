@@ -6,17 +6,18 @@
 #include <thread>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <fstream>
+#include <functional>
 
 
 void spinup_srv()
 {
     httplib::Client cli("localhost", 8080);
 }
-void spinup_and_pupulate_req_db(){
-    SQLite::Database db("requests.db", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
-    db.exec("CREATE TABLE IF NOT EXISTS requests (id INTEGER PRIMARY KEY, method TEXT, path TEXT, headers TEXT, body TEXT)");
-    db.exec("INSERT INTO requests (method, path, headers, body) VALUES ('GET', '/api/data', '{\"Content-Type\": \"application/json\"}', '{\"key\": \"value\"}')");
-}
+// void spinup_and_pupulate_req_db(){
+//     SQLite::Database db("requests.db", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
+//     db.exec("CREATE TABLE IF NOT EXISTS requests (id INTEGER PRIMARY KEY, method TEXT, path TEXT, headers TEXT, body TEXT)");
+//     db.exec("INSERT INTO requests (method, path, headers, body) VALUES ('GET', '/api/data', '{\"Content-Type\": \"application/json\"}', '{\"key\": \"value\"}')");
+// }
 
 
 
@@ -24,7 +25,7 @@ using json = nlohmann::json;
 
 int main(int, char **)
 {   
-    spinup_and_pupulate_req_db();
+    std::function<void()> f;
     webview::webview w(false, nullptr);
     w.set_title("http_client_cpp");
     w.set_size(1200, 900, WEBVIEW_HINT_NONE);
@@ -33,7 +34,7 @@ int main(int, char **)
         json j = json::parse(arg);
         return json({{"message", "hello it worked, you sent:"}, {"data", j}}).dump();
     });
-    w.bind("getRequests", [&](std::string arg) ->std::string {
+    w.bind("getRequests", [&](const std::string &arg,const std::string &req, void*){
         SQLite::Database db("requests.db", SQLite::OPEN_READONLY);
         SQLite::Statement query(db, "SELECT method, path, headers, body FROM requests");
         json j = json::array();
@@ -47,8 +48,7 @@ int main(int, char **)
             j.push_back(req);
             std::cout << "Fetched request: " << req.dump(4) << std::endl;
         }
-        return j.dump(4);
-    });
+    }, nullptr);
     
     w.run();
     return 0;
