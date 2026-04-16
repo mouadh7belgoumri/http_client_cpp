@@ -1,17 +1,11 @@
 #include <iostream>
-#include "../lib/httplib.h"
 #include <webview/webview.h>
 #include "../lib/index_html.h"
 #include <nlohmann/json.hpp>
 #include <thread>
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <fstream>
-#include <functional>
+#include <mutex>
 
-void spinup_srv()
-{
-    httplib::Client cli("localhost", 8080);
-}
 // void spinup_and_pupulate_req_db()
 // {
 //     SQLite::Database db("requests.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
@@ -20,6 +14,8 @@ void spinup_srv()
 // }
 
 using json = nlohmann::json;
+std::mutex glbl_mutex;
+
 int main(int, char **)
 {
 
@@ -41,8 +37,10 @@ int main(int, char **)
                 req_json["body"] = json::parse(query.getColumn(3).getString());
                 j.push_back(req_json);
             }
+            std::lock_guard<std::mutex> lock(glbl_mutex);
             w.resolve(id, 0, j.dump()); })
-                 .join(); }, nullptr);
+                 .detach(); }, nullptr);
+    std::lock_guard<std::mutex> lock(glbl_mutex);
     w.run();
     return 0;
 }
