@@ -1,3 +1,4 @@
+
 type ResponseTab = "body" | "headers";
 
 interface ResNavProps {
@@ -6,7 +7,6 @@ interface ResNavProps {
 }
 
 function ResNav({ activeTab, onTabChange }: ResNavProps) {
-
     const getTabClass = (tabName: string) => {
         const baseClass = "px-4 py-2 text-sm font-medium";
         return activeTab === tabName

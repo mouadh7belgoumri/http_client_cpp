@@ -12,22 +12,23 @@ void spinup_srv()
 {
     httplib::Client cli("localhost", 8080);
 }
-// void spinup_and_pupulate_req_db(){
-//     SQLite::Database db("requests.db", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
+// void spinup_and_pupulate_req_db()
+// {
+//     SQLite::Database db("requests.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 //     db.exec("CREATE TABLE IF NOT EXISTS requests (id INTEGER PRIMARY KEY, method TEXT, path TEXT, headers TEXT, body TEXT)");
 //     db.exec("INSERT INTO requests (method, path, headers, body) VALUES ('GET', '/api/data', '{\"Content-Type\": \"application/json\"}', '{\"key\": \"value\"}')");
 // }
 
 using json = nlohmann::json;
-
 int main(int, char **)
-{   
+{
+    
     webview::webview w(false, nullptr);
     w.set_title("http_client_cpp");
     w.set_size(1200, 900, WEBVIEW_HINT_NONE);
     w.set_html(html);
-    w.bind("getRequests",
-         [&](const std::string &id, const std::string &req, void* ){
+    w.bind("getRequests", [&](const std::string &id, const std::string &req, void *)
+           {
             SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
             json j = json::array();
             SQLite::Statement query{db, "SELECT method, path, headers, body FROM requests"};
@@ -39,9 +40,7 @@ int main(int, char **)
                 req_json["body"] = json::parse(query.getColumn(3).getString());
                 j.push_back(req_json);
             }
-            w.resolve(id, 0, j.dump());
-         },
-          nullptr );
+            w.resolve(id, 0, j.dump()); }, nullptr);
     w.run();
     return 0;
 }

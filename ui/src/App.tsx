@@ -13,6 +13,7 @@ function App() {
   const [sendActiveTab, setSendActiveTab] = useState<SendTab>('headers')
   const [responseActiveTab, setResponseActiveTab] = useState<ResponseTab>('body')
   const [bodyType, setBodyType] = useState<BodyType>('json')
+  const [selectedRequest, setSelectedRequest] = useState<RequestCpp | null>(null)
 
   const sendTabPlaceholders: Record<SendTab, string> = {
     headers: 'Add headers... (e.g. Authorization: Bearer <token>)',
@@ -28,10 +29,10 @@ function App() {
   return (
     <>
       <div className="flex h-screen bg-gray-900 text-gray-100">
-        <ReqListSideBar />
+        <ReqListSideBar onSelectRequest={setSelectedRequest} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 flex flex-col border-b border-gray-700">
-            <SendReqBar />
+            <SendReqBar selectedRequest={selectedRequest} />
             <SendReqNav activeTab={sendActiveTab} onTabChange={setSendActiveTab} />
             {sendActiveTab === 'body' && (
               <div className="p-3 border-b border-gray-700 bg-gray-900/50 flex items-center gap-3">
@@ -52,15 +53,20 @@ function App() {
               </div>
             )}
             <textarea
+              key={selectedRequest?.path}
               placeholder={sendTabPlaceholders[sendActiveTab]}
+              value={sendActiveTab === 'headers' && selectedRequest ? (typeof selectedRequest.header === 'string' ? selectedRequest.header : JSON.stringify(selectedRequest.header, null, 2)) : sendActiveTab === 'body' && selectedRequest ? (typeof selectedRequest.body === 'string' ? selectedRequest.body : JSON.stringify(selectedRequest.body, null, 2)) : ''}
+              readOnly
               className="flex-1 bg-gray-800 text-gray-100 p-4 border-none focus:outline-none text-sm font-mono resize-none"
             />
           </div>
           <div className="flex-1 flex flex-col border-t border-gray-700">
             <ResNav activeTab={responseActiveTab} onTabChange={setResponseActiveTab} />
             <textarea
+              key={`response-${selectedRequest?.path}`}
               readOnly
               placeholder={responseTabPlaceholders[responseActiveTab]}
+              value={responseActiveTab === 'headers' && selectedRequest ? (typeof selectedRequest.header === 'string' ? selectedRequest.header : JSON.stringify(selectedRequest.header, null, 2)) : responseActiveTab === 'body' && selectedRequest ? (typeof selectedRequest.body === 'string' ? selectedRequest.body : JSON.stringify(selectedRequest.body, null, 2)) : ''}
               className="flex-1 bg-gray-800 text-gray-300 p-4 border-none focus:outline-none text-sm font-mono resize-none"
             />
           </div>
