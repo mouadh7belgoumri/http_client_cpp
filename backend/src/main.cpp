@@ -1,4 +1,5 @@
 #include <iostream>
+#include "../lib/httplib.h"
 #include <webview/webview.h>
 #include "../lib/index_html.h"
 #include <nlohmann/json.hpp>
@@ -26,7 +27,6 @@ int main(int, char **)
     w.bind("getRequests", [&](const std::string &id, const std::string &req, void *)
            { std::thread([&]()
                          {
-            std::lock_guard<std::mutex> lock(glbl_mutex);
             SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
             json j = json::array();
             SQLite::Statement query{db, "SELECT method, path, headers, body FROM requests"};
@@ -40,8 +40,13 @@ int main(int, char **)
             }
             
             w.resolve(id, 0, j.dump()); })
-                 .detach(); }, nullptr);
-    std::lock_guard<std::mutex> lock(glbl_mutex);
+            //TODO fix .join() that blocking ui and changing it to .detach()
+                 .join(); }, nullptr);
+    w.bind("sendReq", [&](const std::string &id, const std::string &req, void*){
+        //TODO implementing the client logic for sending requests and receiving responses here
+        httplib::Client cli("http://localhost", 8000);
+        
+    }, nullptr);
     w.run();
     return 0;
 }
