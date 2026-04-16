@@ -8,7 +8,6 @@
 #include <fstream>
 #include <functional>
 
-
 void spinup_srv()
 {
     httplib::Client cli("localhost", 8080);
@@ -19,37 +18,30 @@ void spinup_srv()
 //     db.exec("INSERT INTO requests (method, path, headers, body) VALUES ('GET', '/api/data', '{\"Content-Type\": \"application/json\"}', '{\"key\": \"value\"}')");
 // }
 
-
-
 using json = nlohmann::json;
 
 int main(int, char **)
 {   
-    std::function<void()> f;
     webview::webview w(false, nullptr);
     w.set_title("http_client_cpp");
     w.set_size(1200, 900, WEBVIEW_HINT_NONE);
     w.set_html(html);
-    w.bind("makeFile", [&](std::string arg) ->std::string {
-        json j = json::parse(arg);
-        return json({{"message", "hello it worked, you sent:"}, {"data", j}}).dump();
-    });
-    w.bind("getRequests", [&](const std::string &arg,const std::string &req, void*){
-        SQLite::Database db("requests.db", SQLite::OPEN_READONLY);
-        SQLite::Statement query(db, "SELECT method, path, headers, body FROM requests");
-        json j = json::array();
-        while (query.executeStep()) {
-            json req = {
-                {"method", query.getColumn(0).getString()},
-                {"path", query.getColumn(1).getString()},
-                {"headers", json::parse(query.getColumn(2).getString())},
-                {"body", json::parse(query.getColumn(3).getString())}
-            };
-            j.push_back(req);
-            std::cout << "Fetched request: " << req.dump(4) << std::endl;
-        }
-    }, nullptr);
-    
+    w.bind("getRequests",
+         [&](const std::string &id, const std::string &req, void* ){
+            SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
+            json j = json::array();
+            SQLite::Statement query{db, "SELECT method, path, headers, body FROM requests"};
+            while (query.executeStep()) {
+                json req_json;
+                req_json["method"] = query.getColumn(0).getString();
+                req_json["path"] = query.getColumn(1).getString();
+                req_json["headers"] = json::parse(query.getColumn(2).getString());
+                req_json["body"] = json::parse(query.getColumn(3).getString());
+                j.push_back(req_json);
+            }
+            w.resolve(id, 0, j.dump());
+         },
+          nullptr );
     w.run();
     return 0;
 }
