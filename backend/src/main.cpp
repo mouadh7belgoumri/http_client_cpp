@@ -22,13 +22,14 @@ void spinup_srv()
 using json = nlohmann::json;
 int main(int, char **)
 {
-    
+
     webview::webview w(false, nullptr);
     w.set_title("http_client_cpp");
     w.set_size(1200, 900, WEBVIEW_HINT_NONE);
     w.set_html(html);
     w.bind("getRequests", [&](const std::string &id, const std::string &req, void *)
-           {
+           { std::thread([&]()
+                         {
             SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
             json j = json::array();
             SQLite::Statement query{db, "SELECT method, path, headers, body FROM requests"};
@@ -40,7 +41,8 @@ int main(int, char **)
                 req_json["body"] = json::parse(query.getColumn(3).getString());
                 j.push_back(req_json);
             }
-            w.resolve(id, 0, j.dump()); }, nullptr);
+            w.resolve(id, 0, j.dump()); })
+                 .join(); }, nullptr);
     w.run();
     return 0;
 }
