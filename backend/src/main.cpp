@@ -26,6 +26,7 @@ int main(int, char **)
     w.bind("getRequests", [&](const std::string &id, const std::string &req, void *)
            { std::thread([&]()
                          {
+            std::lock_guard<std::mutex> lock(glbl_mutex);
             SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
             json j = json::array();
             SQLite::Statement query{db, "SELECT method, path, headers, body FROM requests"};
@@ -37,7 +38,7 @@ int main(int, char **)
                 req_json["body"] = json::parse(query.getColumn(3).getString());
                 j.push_back(req_json);
             }
-            std::lock_guard<std::mutex> lock(glbl_mutex);
+            
             w.resolve(id, 0, j.dump()); })
                  .detach(); }, nullptr);
     std::lock_guard<std::mutex> lock(glbl_mutex);
