@@ -19,12 +19,12 @@ std::mutex glbl_mutex;
 
 int main(int, char **)
 {
-
+    webview::webview test = webview_dispatch();
     webview::webview w(false, nullptr);
     w.set_title("http_client_cpp");
     w.set_size(1200, 900, WEBVIEW_HINT_NONE);
     w.set_html(html);
-    w.bind("getRequests", [&](const std::string &id, const std::string &req, void *)
+    w.bind("getRequests", [&](const std::string &Id, const std::string &req, void *)
            { std::thread([&]()
                          {
             SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
@@ -39,7 +39,9 @@ int main(int, char **)
                 j.push_back(req_json);
             }
             
-            w.resolve(id, 0, j.dump()); })
+            w.dispatch([&, Id](){
+                w.resolve(Id, 0, j.dump());
+            }); })
             //TODO fix .join() that blocking ui and changing it to .detach()
                  .join(); }, nullptr);
     w.bind("sendReq", [&](const std::string &id, const std::string &req, void*){
