@@ -14,6 +14,7 @@ function App() {
   const [responseActiveTab, setResponseActiveTab] = useState<ResponseTab>('body')
   const [bodyType, setBodyType] = useState<BodyType>('json')
   const [selectedRequest, setSelectedRequest] = useState<RequestCpp | null>(null)
+  const [responseData, setResponseData] = useState<{ body?: string; headers?: string } | null>(null)
 
   const sendTabPlaceholders: Record<SendTab, string> = {
     headers: 'Add headers... (e.g. Authorization: Bearer <token>)',
@@ -26,16 +27,23 @@ function App() {
     headers: 'Response headers will appear here...',
   }
 
+  const handleSelectRequest = (request: RequestCpp) => {
+    setSelectedRequest(request)
+    setSendActiveTab('headers')
+    setResponseActiveTab('body')
+    setResponseData(null)
+  }
+
   return (
     <>
-      <div className="flex h-screen bg-gray-900 text-gray-100">
-        <ReqListSideBar onSelectRequest={setSelectedRequest} />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 flex flex-col border-b border-gray-700">
-            <SendReqBar selectedRequest={selectedRequest} />
+      <div className="flex h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100" key={`${selectedRequest?.method}-${selectedRequest?.path}`}>
+        <ReqListSideBar onSelectRequest={handleSelectRequest} />
+        <div className="flex-1 flex flex-col overflow-hidden shadow-2xl">
+          <div className="flex-1 flex flex-col border-b border-gray-700/50">
+            <SendReqBar selectedRequest={selectedRequest} onSendRequest={() => setResponseData({ body: '', headers: '' })} />
             <SendReqNav activeTab={sendActiveTab} onTabChange={setSendActiveTab} />
             {sendActiveTab === 'body' && (
-              <div className="p-3 border-b border-gray-700 bg-gray-900/50 flex items-center gap-3">
+              <div className="p-3 border-b border-gray-700/50 bg-gray-800/30 flex items-center gap-3">
                 <label htmlFor="body-type" className="text-sm text-gray-300">
                   Body type
                 </label>
@@ -43,7 +51,7 @@ function App() {
                   id="body-type"
                   value={bodyType}
                   onChange={(e) => setBodyType(e.target.value as BodyType)}
-                  className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 req-btn"
+                  className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 req-btn transition-colors"
                 >
                   <option value="json">JSON</option>
                   <option value="xml">XML</option>
@@ -53,21 +61,27 @@ function App() {
               </div>
             )}
             <textarea
-              key={selectedRequest?.path}
+              key={`request-${selectedRequest?.method}-${selectedRequest?.path}`}
               placeholder={sendTabPlaceholders[sendActiveTab]}
-              value={sendActiveTab === 'headers' && selectedRequest ? (typeof selectedRequest.header === 'string' ? selectedRequest.header : JSON.stringify(selectedRequest.header, null, 2)) : sendActiveTab === 'body' && selectedRequest ? (typeof selectedRequest.body === 'string' ? selectedRequest.body : JSON.stringify(selectedRequest.body, null, 2)) : ''}
+              value={selectedRequest ? (
+                sendActiveTab === 'headers' 
+                  ? (typeof selectedRequest.header === 'string' ? selectedRequest.header : JSON.stringify(selectedRequest.header, null, 2))
+                  : sendActiveTab === 'body'
+                  ? (typeof selectedRequest.body === 'string' ? selectedRequest.body : JSON.stringify(selectedRequest.body, null, 2))
+                  : ''
+              ) : ''}
               readOnly
-              className="flex-1 bg-gray-800 text-gray-100 p-4 border-none focus:outline-none text-sm font-mono resize-none"
+              className="flex-1 bg-gray-800/50 text-gray-100 p-4 border-none focus:outline-none text-sm font-mono resize-none placeholder-gray-500"
             />
           </div>
-          <div className="flex-1 flex flex-col border-t border-gray-700">
+          <div className="flex-1 flex flex-col border-t border-gray-700/50">
             <ResNav activeTab={responseActiveTab} onTabChange={setResponseActiveTab} />
             <textarea
-              key={`response-${selectedRequest?.path}`}
+              key={`response-${selectedRequest?.method}-${selectedRequest?.path}`}
               readOnly
               placeholder={responseTabPlaceholders[responseActiveTab]}
-              value={responseActiveTab === 'headers' && selectedRequest ? (typeof selectedRequest.header === 'string' ? selectedRequest.header : JSON.stringify(selectedRequest.header, null, 2)) : responseActiveTab === 'body' && selectedRequest ? (typeof selectedRequest.body === 'string' ? selectedRequest.body : JSON.stringify(selectedRequest.body, null, 2)) : ''}
-              className="flex-1 bg-gray-800 text-gray-300 p-4 border-none focus:outline-none text-sm font-mono resize-none"
+              value={responseData ? (responseActiveTab === 'headers' ? responseData.headers || '' : responseData.body || '') : ''}
+              className="flex-1 bg-gray-800/50 text-gray-300 p-4 border-none focus:outline-none text-sm font-mono resize-none placeholder-gray-500"
             />
           </div>
         </div>

@@ -3,3 +3,36 @@
 :root {
 	color-scheme: dark;
 }
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+	background: #4b5563;
+	border-radius: 4px;
+	transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #6b7280;
+}
+
+/* Text selection */
+::selection {
+	background-color: rgba(59, 130, 246, 0.3);
+	color: #f3f4f6;
+}
+
+/* Global smoothness */
+* {
+	transition-property: background-color, border-color, color;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 200ms;
+}
