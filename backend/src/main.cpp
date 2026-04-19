@@ -5,18 +5,19 @@
 #include <nlohmann/json.hpp>
 #include <thread>
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <memory>
+#include <mutex>
 
 using json = nlohmann::json;
 
 int main(int, char **)
 {
-    auto w = std::make_shared<webview::webview>(false, nullptr);
-    w->set_title("http_client_cpp");
-    w->set_size(1200, 900, WEBVIEW_HINT_NONE);
-    w->set_html(html);
-    w->bind("getRequests", [w](const std::string &id, const std::string &req, void *)
-           { std::thread([w, id, req]()
+    webview::webview w(false, nullptr);
+    auto t = &w;
+    w.set_title("http_client_cpp");
+    w.set_size(1200, 900, WEBVIEW_HINT_NONE);
+    w.set_html(html);
+    w.bind("getRequests", [t](const std::string &id, const std::string &req, void *)
+           { std::thread([t, &id]()
                          {
                              try
                              {
@@ -32,21 +33,22 @@ int main(int, char **)
                                      req_json["body"] = json::parse(query.getColumn(3).getString());
                                      j.push_back(req_json);
                                  }
-                                 w->dispatch([id, j, w]()
-                                 {
-                                     w->resolve(id, 0, j.dump());
-                                 });
+                                 t->dispatch([id, j, &t]()
+                                             { t->resolve(id, 0, j.dump()); });
                              }
-                             catch (const std::exception& e)
+                             catch (const std::exception &e)
                              {
-                                 w->dispatch([id, e, w]()
-                                 {
-                                     w->resolve(id, 1, std::string(e.what()));
-                                 });
+                                 std::cerr << e.what() << '\n';
                              }
                          })
+                 // TODO fix .join() that blocking ui and changing it to .detach()
                  .detach(); }, nullptr);
-    
-    w->run();
+    // w.bind("sendReq", [&](const std::string &id, const std::string &req, void *)
+    //        {
+    //            // TODO implementing the client logic for sending requests and receiving responses here
+    //            httplib::Client cli("http://localhost", 8000);
+    //        },
+    //        nullptr);
+    w.run();
     return 0;
 }
