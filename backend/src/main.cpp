@@ -46,12 +46,7 @@ int main(int, char **)
                              }
                          })
                  .detach(); }, nullptr);
-    // w->bind("sendReq", [w](const std::string &id, const std::string &req, void *)
-    //        {
-    //            // TODO implementing the client logic for sending requests and receiving responses here
-    //            httplib::Client cli("http://localhost", 8000);
-    //        },
-    //        nullptr);
+    
     w->run();
     return 0;
 }
