@@ -1,0 +1,46 @@
+{
+    "requests": [
+        {
+            "method": "GET",
+            "path": "/api/users",
+            "header": "Authorization: Bearer token123\nContent-Type: application/json",
+            "body": ""
+        },
+        {
+            "method": "POST",
+            "path": "/api/users",
+            "header": "Authorization: Bearer token123\nContent-Type: application/json",
+            "body": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"age\": 30\n}"
+        },
+        {
+            "method": "GET",
+            "path": "/api/users/123",
+            "header": "Authorization: Bearer token123\nContent-Type: application/json",
+            "body": ""
+        },
+        {
+            "method": "PUT",
+            "path": "/api/users/123",
+            "header": "Authorization: Bearer token123\nContent-Type: application/json",
+            "body": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"age\": 28\n}"
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/users/123",
+            "header": "Authorization: Bearer token123\nContent-Type: application/json",
+            "body": ""
+        },
+        {
+            "method": "GET",
+            "path": "/api/products?limit=10&offset=0",
+            "header": "Content-Type: application/json",
+            "body": ""
+        },
+        {
+            "method": "POST",
+            "path": "/api/auth/login",
+            "header": "Content-Type: application/json",
+            "body": "{\n  \"username\": \"admin\",\n  \"password\": \"password123\"\n}"
+        }
+    ]
+}
