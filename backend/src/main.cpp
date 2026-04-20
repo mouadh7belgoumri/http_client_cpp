@@ -24,14 +24,21 @@ int main(int, char **)
                                  SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
                                  json j = json::array();
                                  SQLite::Statement query{db, "SELECT method, path, headers, body FROM requests"};
+                                 int i = 0;
                                  while (query.executeStep())
                                  {
                                      json req_json;
                                      req_json["method"] = query.getColumn(0).getString();
+                                     std::cout << "Method: " << i << "fetched from database " << std::endl;
                                      req_json["path"] = query.getColumn(1).getString();
+                                        std::cout << "Path: " << i << "fetched from database " << std::endl;
                                      req_json["headers"] = json::parse(query.getColumn(2).getString());
+                                        std::cout << "Headers: " << i << "fetched from database " << std::endl;
                                      req_json["body"] = json::parse(query.getColumn(3).getString());
+                                        std::cout << "Body: " << i << "fetched from database " << std::endl;
                                      j.push_back(req_json);
+                                     i++;
+                                     
                                  }
                                  std::cout << j.dump(10) << std::endl;
                                  std::cout << "Requests retrieved from database." << std::endl;
@@ -60,9 +67,22 @@ int main(int, char **)
                         std::cout << req_json.dump(10) << std::endl;
                         auto port_size = req_json[0]["path"].get<std::string>().find('/');
                         auto host = split(req_json[0]["path"].get<std::string>(), ':');
-                        auto port = req_json[0]["path"].get<std::string>().substr(host.length() + 1, port_size - host.length() - 1);
-                        std::cout << "Port: " << port << std::endl;
                         std::cout << "Host: " << host << std::endl;
+                        httplib::Client cli(host.c_str());
+                        httplib::Headers headers;
+                        for (auto& header : req_json[0]["headers"].items()) {
+                            headers.insert({header.key(), header.value().get<std::string>()});
+                        }
+                        auto res = cli.Get("https://jsonplaceholder.typicode.com/todos/1");
+                        json res_json;
+                        if (res) {
+                            res_json["status"] = res->status;
+                            res_json["headers"] = res->headers;
+                            res_json["body"] = res->body;
+                        } else {
+                            res_json["error"] = "Request failed";
+                        }
+                        std::cout << res_json.dump(10) << std::endl;
                         
                         w->dispatch([id, req_json, w]()
                         {
