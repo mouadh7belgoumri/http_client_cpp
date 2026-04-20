@@ -1,17 +1,10 @@
 export { };
 
-interface RequestCpp {
-  method: string;
-  path: string;
-  header: string;
-  body: string;
-}
-
 declare global {
   interface RequestCpp {
     method: string;
     path: string;
-    header: string;
+    headers: string;
     body: string;
   }
   interface Window {

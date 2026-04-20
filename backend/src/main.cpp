@@ -32,6 +32,7 @@ int main(int, char **)
                                      req_json["body"] = json::parse(query.getColumn(3).getString());
                                      j.push_back(req_json);
                                  }
+                                 std::cout << j.dump(10) << std::endl;
                                  w->dispatch([id, j, w]()
                                  {
                                      w->resolve(id, 0, j.dump());
@@ -46,12 +47,12 @@ int main(int, char **)
                              }
                          })
                  .detach(); }, nullptr);
-    // w->bind("sendReq", [w](const std::string &id, const std::string &req, void *)
-    //        {
-    //            // TODO implementing the client logic for sending requests and receiving responses here
-    //            httplib::Client cli("http://localhost", 8000);
-    //        },
-    //        nullptr);
+    w->bind("sendReq", [w](const std::string &id, const std::string &req, void *)
+           {
+               // TODO implementing the client logic for sending requests and receiving responses here
+               httplib::Client cli("http://localhost", 8000);
+           },
+           nullptr);
     w->run();
     return 0;
 }
