@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-import ReqListSideBar from './components/ReqListSideBar' 
+import ReqListSideBar from './components/ReqListSideBar'
 import ResNav from './components/ResNav'
 import SendReqBar from './components/SendReqBar'
 import SendReqNav from './components/SendReqNav'
@@ -27,7 +27,7 @@ function App() {
     headers: 'Response headers will appear here...',
   }
 
-  
+
 
   return (
     <>
@@ -35,7 +35,26 @@ function App() {
         <ReqListSideBar onSelectRequest={setSelectedRequest} />
         <div className="flex-1 flex flex-col overflow-hidden shadow-2xl">
           <div className="flex-1 flex flex-col border-b border-gray-700/50">
-            <SendReqBar selectedRequest={selectedRequest} onSendRequest={() => setResponseData({ body: '', headers: '' })} />
+            <SendReqBar selectedRequest={selectedRequest} onSendRequest={() => {
+              if (selectedRequest && window.sendReq) {
+                window.sendReq(selectedRequest)
+                  .then((response) => {
+                    setResponseData({
+                      body: response.body,
+                      headers: response.headers,
+                    });
+                  })
+                  .catch((error) => {
+                    console.error("Error sending request:", error);
+                    setResponseData({
+                      body: `Error: ${error.message}`,
+                      headers: '',
+                    });
+                  });
+              } else {
+                console.warn("sendReq function is not defined on window or no request selected");
+              }
+            }} />
             <SendReqNav activeTab={sendActiveTab} onTabChange={setSendActiveTab} />
             {sendActiveTab === 'body' && (
               <div className="p-3 border-b border-gray-700/50 bg-gray-800/30 flex items-center gap-3">
@@ -59,11 +78,11 @@ function App() {
               key={`request-${selectedRequest?.method}-${selectedRequest?.path}-${sendActiveTab}`}
               placeholder={sendTabPlaceholders[sendActiveTab]}
               value={selectedRequest ? (
-                sendActiveTab === 'headers' 
+                sendActiveTab === 'headers'
                   ? (typeof selectedRequest.headers === 'string' ? selectedRequest.headers : JSON.stringify(selectedRequest.headers, null, 2))
                   : sendActiveTab === 'body'
-                  ? (typeof selectedRequest.body === 'string' ? selectedRequest.body : JSON.stringify(selectedRequest.body, null, 2))
-                  : ''
+                    ? (typeof selectedRequest.body === 'string' ? selectedRequest.body : JSON.stringify(selectedRequest.body, null, 2))
+                    : ''
               ) : ''}
               className="flex-1 bg-gray-800/50 text-gray-100 p-4 border-none focus:outline-none text-sm font-mono resize-none placeholder-gray-500"
             />

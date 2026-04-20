@@ -6,6 +6,7 @@
 #include <thread>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <memory>
+#include "../lib/parse.h"
 
 using json = nlohmann::json;
 
@@ -16,8 +17,8 @@ int main(int, char **)
     w->set_size(1200, 900, WEBVIEW_HINT_NONE);
     w->set_html(html);
     w->bind("getRequests", [w](const std::string &id, const std::string &req, void *)
-           { std::thread([w, id, req]()
-                         {
+            { std::thread([w, id, req]()
+                          {
                              try
                              {
                                  SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
@@ -33,6 +34,7 @@ int main(int, char **)
                                      j.push_back(req_json);
                                  }
                                  std::cout << j.dump(10) << std::endl;
+                                 std::cout << "Requests retrieved from database." << std::endl;
                                  w->dispatch([id, j, w]()
                                  {
                                      w->resolve(id, 0, j.dump());
@@ -40,19 +42,38 @@ int main(int, char **)
                              }
                              catch (const std::exception& e)
                              {
-                                 w->dispatch([id, e, w]()
+
+                                std::cerr << e.what() << '\n';
+                                std::cout << "Error retrieving requests from database." << std::endl;
+                                w->dispatch([id, e, w]()
                                  {
                                      w->resolve(id, 1, std::string(e.what()));
                                  });
-                             }
-                         })
-                 .detach(); }, nullptr);
+                             } })
+                  .detach(); }, nullptr);
     w->bind("sendReq", [w](const std::string &id, const std::string &req, void *)
-           {
-               // TODO implementing the client logic for sending requests and receiving responses here
-               httplib::Client cli("http://localhost", 8000);
-           },
-           nullptr);
+            {
+                try
+                {
+                    std::thread([w, id, req](){
+                        json req_json = json::parse(req);
+                        std::cout << req_json.dump(10) << std::endl;
+                        auto port_size = req_json[0]["path"].get<std::string>().find('/');
+                        auto host = split(req_json[0]["path"].get<std::string>(), ':');
+                        auto port = req_json[0]["path"].get<std::string>().substr(host.length() + 1, port_size - host.length() - 1);
+                        std::cout << "Port: " << port << std::endl;
+                        std::cout << "Host: " << host << std::endl;
+                        
+                        w->dispatch([id, req_json, w]()
+                        {
+                            w->resolve(id, 0, req_json.dump());
+                        });
+                    }).detach();
+                }
+                catch (const std::exception &e)
+                {
+                    std::cerr << e.what() << '\n';
+                } }, nullptr);
     w->run();
     return 0;
 }
