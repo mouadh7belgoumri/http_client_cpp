@@ -65,15 +65,9 @@ int main(int, char **)
                     std::thread([w, id, req](){
                         json req_json = json::parse(req);
                         std::cout << req_json.dump(10) << std::endl;
-                        auto port_size = req_json[0]["path"].get<std::string>().find('/');
-                        auto host = split(req_json[0]["path"].get<std::string>(), ':');
-                        std::cout << "Host: " << host << std::endl;
-                        httplib::Client cli(host.c_str());
-                        httplib::Headers headers;
-                        for (auto& header : req_json[0]["headers"].items()) {
-                            headers.insert({header.key(), header.value().get<std::string>()});
-                        }
-                        auto res = cli.Get("https://jsonplaceholder.typicode.com/todos/1");
+                        httplib::Client cli("jsonplaceholder.typicode.com");
+                        auto res = cli.Get("/todos/1");
+                        
                         json res_json;
                         if (res) {
                             res_json["status"] = res->status;
