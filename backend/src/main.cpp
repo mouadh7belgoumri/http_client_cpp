@@ -6,8 +6,7 @@
 #include <thread>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <memory>
-#include "../include/ada.h"
-#include "../include/ada.cpp"
+#include <ada.h>
 using json = nlohmann::json;
 
 int main(int, char **)
