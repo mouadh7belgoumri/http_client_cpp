@@ -1,13 +1,13 @@
 #include <iostream>
-#include "../lib/httplib.h"
+#include "../include/httplib.h"
 #include <webview/webview.h>
 #include "../lib/index_html.h"
 #include <nlohmann/json.hpp>
 #include <thread>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <memory>
-#include "../lib/parse.h"
-
+#include "../include/ada.h"
+#include "../include/ada.cpp"
 using json = nlohmann::json;
 
 int main(int, char **)
@@ -29,19 +29,13 @@ int main(int, char **)
                                  {
                                      json req_json;
                                      req_json["method"] = query.getColumn(0).getString();
-                                     std::cout << "Method: " << i << "fetched from database " << std::endl;
                                      req_json["path"] = query.getColumn(1).getString();
-                                        std::cout << "Path: " << i << "fetched from database " << std::endl;
                                      req_json["headers"] = json::parse(query.getColumn(2).getString());
-                                        std::cout << "Headers: " << i << "fetched from database " << std::endl;
                                      req_json["body"] = json::parse(query.getColumn(3).getString());
-                                        std::cout << "Body: " << i << "fetched from database " << std::endl;
                                      j.push_back(req_json);
                                      i++;
                                      
                                  }
-                                 std::cout << j.dump(10) << std::endl;
-                                 std::cout << "Requests retrieved from database." << std::endl;
                                  w->dispatch([id, j, w]()
                                  {
                                      w->resolve(id, 0, j.dump());
@@ -49,7 +43,6 @@ int main(int, char **)
                              }
                              catch (const std::exception& e)
                              {
-
                                 std::cerr << e.what() << '\n';
                                 std::cout << "Error retrieving requests from database." << std::endl;
                                 w->dispatch([id, e, w]()
@@ -64,10 +57,17 @@ int main(int, char **)
                 {
                     std::thread([w, id, req](){
                         json req_json = json::parse(req);
-                        std::cout << req_json.dump(10) << std::endl;
-                        httplib::Client cli("jsonplaceholder.typicode.com");
-                        auto res = cli.Get("/todos/1");
-                        
+                        auto path = req_json[0]["path"].dump().replace(0,1, "");
+                        path = path.replace(path.length()-1, 1, "");
+                        auto url = ada::parse<ada::url_aggregator>(path);
+                        if (!url){
+                            throw "url format error";
+                        }
+                        auto origin = url -> get_origin(); 
+                        httplib::Client cli(origin);
+                        auto route = std::string(url -> get_pathname());
+                        std::cout << route << std::endl;
+                        auto res = cli.Get(route);
                         json res_json;
                         if (res) {
                             res_json["status"] = res->status;
@@ -76,8 +76,7 @@ int main(int, char **)
                         } else {
                             res_json["error"] = "Request failed";
                         }
-                        std::cout << res_json.dump(10) << std::endl;
-                        
+                        std::cout << res_json << std::endl;
                         w->dispatch([id, req_json, w]()
                         {
                             w->resolve(id, 0, req_json.dump());

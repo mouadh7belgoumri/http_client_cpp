@@ -1,0 +1,12 @@
+prefix=${pcfiledir}/../..
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: ada
+Description: Fast spec-compliant URL parser
+URL: 
+Version: 3.4.4
+
+
+Libs: "-L${libdir}" -lada
+Cflags: "-I${includedir}" 

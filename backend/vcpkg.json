@@ -1,6 +1,6 @@
 {
   "dependencies": [
-    "sqlitecpp"
-    
+    "sqlitecpp",
+    "ada-url"
   ]
 }
