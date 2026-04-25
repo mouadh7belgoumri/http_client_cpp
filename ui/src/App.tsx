@@ -15,6 +15,7 @@ function App() {
   const [bodyType, setBodyType] = useState<BodyType>('json')
   const [selectedRequest, setSelectedRequest] = useState<RequestCpp | null>(null)
   const [responseData, setResponseData] = useState<{ body?: string; headers?: string } | null>(null)
+  const [requestBody, setRequesBody] = useState<string>("")
 
   const sendTabPlaceholders: Record<SendTab, string> = {
     headers: 'Add headers... (e.g. Authorization: Bearer <token>)',
@@ -31,7 +32,7 @@ function App() {
 
   return (
     <>
-      <div className="flex h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100" key={`${selectedRequest?.method}-${selectedRequest?.path}`}>
+      <div className="flex h-screen bg-linear-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100" key={`${selectedRequest?.method}-${selectedRequest?.path}`}>
         <ReqListSideBar onSelectRequest={setSelectedRequest} />
         <div className="flex-1 flex flex-col overflow-hidden shadow-2xl">
           <div className="flex-1 flex flex-col border-b border-gray-700/50">
@@ -81,9 +82,14 @@ function App() {
                 sendActiveTab === 'headers'
                   ? (typeof selectedRequest.headers === 'string' ? selectedRequest.headers : JSON.stringify(selectedRequest.headers, null, 2))
                   : sendActiveTab === 'body'
-                    ? (typeof selectedRequest.body === 'string' ? selectedRequest.body : JSON.stringify(selectedRequest.body, null, 2))
+                    ? requestBody
                     : ''
               ) : ''}
+              onChange={(e)=> {
+                if (sendActiveTab === 'body') {
+                  setRequesBody(e.target.value)
+                }
+              }}
               className="flex-1 bg-gray-800/50 text-gray-100 p-4 border-none focus:outline-none text-sm font-mono resize-none placeholder-gray-500"
             />
           </div>
@@ -93,7 +99,7 @@ function App() {
               key={`response-${selectedRequest?.method}-${selectedRequest?.path}-${responseActiveTab}`}
               readOnly
               placeholder={responseTabPlaceholders[responseActiveTab]}
-              value={responseData ? (responseActiveTab === 'headers' ? responseData.headers || '' : responseData.body || '') : ''}
+              value={responseData ? (responseActiveTab === 'headers' ? JSON.parse(responseData.headers!) || '' : responseData.body || '') : ''}
               className="flex-1 bg-gray-800/50 text-gray-300 p-4 border-none focus:outline-none text-sm font-mono resize-none placeholder-gray-500"
             />
           </div>
