@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import CodeEditor from '@uiw/react-textarea-code-editor'
 import './App.css'
 import ReqListSideBar from './components/ReqListSideBar'
 import ResNav from './components/ResNav'
@@ -16,6 +17,7 @@ function App() {
   const [selectedRequest, setSelectedRequest] = useState<RequestCpp | null>(null)
   const [responseData, setResponseData] = useState<{ body?: string; headers?: any } | null>(null)
   const [requestBody, setRequesBody] = useState<string>("")
+  const [jsonError, setJsonError] = useState<string>("")
 
   const sendTabPlaceholders: Record<SendTab, string> = {
     headers: 'Add headers... (e.g. Authorization: Bearer <token>)',
@@ -65,7 +67,10 @@ function App() {
                 <select
                   id="body-type"
                   value={bodyType}
-                  onChange={(e) => setBodyType(e.target.value as BodyType)}
+                  onChange={(e) => {
+                    setBodyType(e.target.value as BodyType);
+                    setJsonError(''); // clear error when switching types
+                  }}
                   className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 req-btn transition-colors"
                 >
                   <option value="json">JSON</option>
@@ -73,45 +78,83 @@ function App() {
                   <option value="text">Text</option>
                   <option value="form-urlencoded">Form URL Encoded</option>
                 </select>
+                {bodyType === 'json' && jsonError && (
+                  <span className="text-red-400 text-xs ml-auto font-mono bg-red-900/20 px-2 py-1 rounded">Invalid JSON: {jsonError}</span>
+                )}
               </div>
             )}
-            <textarea
-              key={`request-${selectedRequest?.method}-${selectedRequest?.path}-${sendActiveTab}`}
-              placeholder={sendTabPlaceholders[sendActiveTab]}
-              value={selectedRequest ? (
-                sendActiveTab === 'headers'
-                  ? (typeof selectedRequest.headers === 'string' ? selectedRequest.headers : JSON.stringify(selectedRequest.headers, null, 2))
-                  : sendActiveTab === 'body'
-                    ? requestBody
-                    : ''
-              ) : ''}
-              onChange={(e)=> {
-                if (sendActiveTab === 'body') {
-                  setRequesBody(e.target.value)
-                }
-              }}
-              className="flex-1 bg-gray-800/50 text-gray-100 p-4 border-none focus:outline-none text-sm font-mono resize-none placeholder-gray-500"
-            />
+            <div className="flex-1 overflow-auto bg-gray-800/50">
+              <CodeEditor
+                key={`request-${selectedRequest?.method}-${selectedRequest?.path}-${sendActiveTab}`}
+                placeholder={sendTabPlaceholders[sendActiveTab]}
+                language={sendActiveTab === 'body' ? (bodyType === 'json' ? 'json' : bodyType === 'xml' ? 'xml' : 'plaintext') : 'json'}
+                value={selectedRequest ? (
+                  sendActiveTab === 'headers'
+                    ? (typeof selectedRequest.headers === 'string' ? selectedRequest.headers : JSON.stringify(selectedRequest.headers, null, 2))
+                    : sendActiveTab === 'body'
+                      ? requestBody
+                      : ''
+                ) : ''}
+                onChange={(e)=> {
+                  if (sendActiveTab === 'body') {
+                    const val = e.target.value;
+                    setRequesBody(val);
+                    if (bodyType === 'json' && val.trim() !== '') {
+                      try {
+                        JSON.parse(val);
+                        setJsonError('');
+                      } catch (err: any) {
+                        setJsonError(err.message);
+                      }
+                    } else {
+                      setJsonError('');
+                    }
+                  }
+                }}
+                padding={16}
+                style={{
+                  minHeight: '100%',
+                  fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                  backgroundColor: 'transparent',
+                }}
+                className="text-gray-100 text-sm border-none focus:outline-none placeholder-gray-500"
+              />
+            </div>
           </div>
           <div className="flex-1 flex flex-col border-t border-gray-700/50">
             <ResNav activeTab={responseActiveTab} onTabChange={setResponseActiveTab} />
-            <textarea
-              key={`response-${selectedRequest?.method}-${selectedRequest?.path}-${responseActiveTab}`}
-              readOnly
-              placeholder={responseTabPlaceholders[responseActiveTab]}
-              value={responseData ? (responseActiveTab === 'headers' ? (() => {
-                if (!responseData.headers) return '';
-                if (typeof responseData.headers === 'object') {
-                  return JSON.stringify(responseData.headers, null, 2);
-                }
-                try {
-                  return JSON.stringify(JSON.parse(responseData.headers), null, 2);
-                } catch {
-                  return String(responseData.headers);
-                }
-              })() : responseData.body || '') : ''}
-              className="flex-1 bg-gray-800/50 text-gray-300 p-4 border-none focus:outline-none text-sm font-mono resize-none placeholder-gray-500"
-            />
+            <div className="flex-1 overflow-auto bg-gray-800/50">
+              <CodeEditor
+                key={`response-${selectedRequest?.method}-${selectedRequest?.path}-${responseActiveTab}`}
+                readOnly
+                language="json"
+                placeholder={responseTabPlaceholders[responseActiveTab]}
+                value={responseData ? (responseActiveTab === 'headers' ? (() => {
+                  if (!responseData.headers) return '';
+                  if (typeof responseData.headers === 'object') {
+                    return JSON.stringify(responseData.headers, null, 2);
+                  }
+                  try {
+                    return JSON.stringify(JSON.parse(responseData.headers), null, 2);
+                  } catch {
+                    return String(responseData.headers);
+                  }
+                })() : (() => {
+                  try {
+                    return typeof responseData.body === 'string' ? JSON.stringify(JSON.parse(responseData.body), null, 2) : String(responseData.body || '');
+                  } catch {
+                    return String(responseData.body || '');
+                  }
+                })()) : ''}
+                padding={16}
+                style={{
+                  minHeight: '100%',
+                  fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                  backgroundColor: 'transparent',
+                }}
+                className="text-gray-300 text-sm border-none focus:outline-none placeholder-gray-500"
+              />
+            </div>
           </div>
         </div>
       </div>
