@@ -14,7 +14,7 @@ function App() {
   const [responseActiveTab, setResponseActiveTab] = useState<ResponseTab>('body')
   const [bodyType, setBodyType] = useState<BodyType>('json')
   const [selectedRequest, setSelectedRequest] = useState<RequestCpp | null>(null)
-  const [responseData, setResponseData] = useState<{ body?: string; headers?: string } | null>(null)
+  const [responseData, setResponseData] = useState<{ body?: string; headers?: any } | null>(null)
   const [requestBody, setRequesBody] = useState<string>("")
 
   const sendTabPlaceholders: Record<SendTab, string> = {
@@ -99,7 +99,17 @@ function App() {
               key={`response-${selectedRequest?.method}-${selectedRequest?.path}-${responseActiveTab}`}
               readOnly
               placeholder={responseTabPlaceholders[responseActiveTab]}
-              value={responseData ? (responseActiveTab === 'headers' ? JSON.parse(responseData.headers!) || '' : responseData.body || '') : ''}
+              value={responseData ? (responseActiveTab === 'headers' ? (() => {
+                if (!responseData.headers) return '';
+                if (typeof responseData.headers === 'object') {
+                  return JSON.stringify(responseData.headers, null, 2);
+                }
+                try {
+                  return JSON.stringify(JSON.parse(responseData.headers), null, 2);
+                } catch {
+                  return String(responseData.headers);
+                }
+              })() : responseData.body || '') : ''}
               className="flex-1 bg-gray-800/50 text-gray-300 p-4 border-none focus:outline-none text-sm font-mono resize-none placeholder-gray-500"
             />
           </div>
