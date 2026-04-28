@@ -18,6 +18,17 @@ function App() {
   const [responseData, setResponseData] = useState<{ body?: string; headers?: any } | null>(null)
   const [requestBody, setRequesBody] = useState<string>("")
 
+  const handleEditorWillMount = (monaco: any) => {
+    monaco.editor.defineTheme('custom-dark', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#00000000', // transparent background
+      },
+    });
+  };
+
   return (
     <>
       <div className="flex h-screen bg-linear-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100" key={`${selectedRequest?.method}-${selectedRequest?.path}`}>
@@ -65,9 +76,10 @@ function App() {
             )}
             <div className="flex-1 bg-gray-800/50 pt-2 pb-2">
               <Editor
+                beforeMount={handleEditorWillMount}
                 key={`request-${selectedRequest?.method}-${selectedRequest?.path}-${sendActiveTab}`}
                 height="100%"
-                theme="vs-dark"
+                theme="custom-dark"
                 language={sendActiveTab === 'body' ? (bodyType === 'json' ? 'json' : bodyType === 'xml' ? 'xml' : 'plaintext') : 'json'}
                 value={selectedRequest ? (
                   sendActiveTab === 'headers'
@@ -95,9 +107,10 @@ function App() {
             <ResNav activeTab={responseActiveTab} onTabChange={setResponseActiveTab} />
             <div className="flex-1 bg-gray-800/50 pt-2 pb-2">
               <Editor
+                beforeMount={handleEditorWillMount}
                 key={`response-${selectedRequest?.method}-${selectedRequest?.path}-${responseActiveTab}`}
                 height="100%"
-                theme="vs-dark"
+                theme="custom-dark"
                 language="json"
                 value={responseData ? (responseActiveTab === 'headers' ? (() => {
                   if (!responseData.headers) return '';
