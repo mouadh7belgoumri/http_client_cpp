@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 include(FetchContent)
 find_package(SQLiteCpp CONFIG REQUIRED)
-find_package(ada-url)
+find_package(ada CONFIG REQUIRED)
 
 
 
@@ -23,7 +23,16 @@ FetchContent_MakeAvailable(json)
 
 
 add_executable(desktop_backend src/main.cpp)
-target_link_libraries(desktop_backend PRIVATE webview::core nlohmann_json::nlohmann_json SQLiteCpp ada )
+
+if(WIN32)
+    target_compile_definitions(desktop_backend PRIVATE
+        WINVER=0x0A00
+        _WIN32_WINNT=0x0A00
+        NTDDI_VERSION=0x0A000000
+    )
+endif()
+
+target_link_libraries(desktop_backend PRIVATE webview::core nlohmann_json::nlohmann_json SQLiteCpp ada::ada )
 
 
 include(CTest)

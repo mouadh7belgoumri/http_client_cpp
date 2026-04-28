@@ -13,6 +13,29 @@
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
+        },
+        {
+            "name": "desktop_app_windows",
+            "displayName": "Visual Studio Community 2026 Release - x86_amd64",
+            "description": "Using compilers for Visual Studio 18 2026 (x86_x64 architecture)",
+            "generator": "Visual Studio 18 2026",
+            "toolset": "host=x86",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CMAKE_TOOLCHAIN_FILE": "C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "desktop_app_windows-debug",
+            "displayName": "Visual Studio Community 2026 Release - x86_amd64 - Debug",
+            "configurePreset": "desktop_app_windows",
+            "configuration": "Debug"
         }
     ]
 }

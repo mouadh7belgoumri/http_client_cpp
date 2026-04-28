@@ -5,7 +5,7 @@
       "name": "default",
       "inherits": "vcpkg",
       "environment": {
-        "VCPKG_ROOT": "/home/mouadh7/vcpkg"
+        "VCPKG_ROOT": "C:/dev/vcpkg"
       }
     }
   ]
