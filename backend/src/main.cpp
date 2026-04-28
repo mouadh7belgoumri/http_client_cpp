@@ -75,7 +75,6 @@ int main(int, char **)
                         } else {
                             res_json["error"] = "Request failed";
                         }
-                        std::cout << res_json.dump(10) << std::endl;
                         w->dispatch([id, res_json, w]()
                         {
                             w->resolve(id, 0, res_json.dump());
