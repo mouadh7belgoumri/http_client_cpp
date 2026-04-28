@@ -7,6 +7,8 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <memory>
 #include <ada.h>
+#include <mutex>
+#include <format>
 using json = nlohmann::json;
 
 int main(int, char **)
@@ -35,6 +37,7 @@ int main(int, char **)
                                      i++;
                                      
                                  }
+
                                  w->dispatch([id, j, w]()
                                  {
                                      w->resolve(id, 0, j.dump());
@@ -85,6 +88,11 @@ int main(int, char **)
                 {
                     std::cerr << e.what() << '\n';
                 } }, nullptr);
-    w->run();
+    w->bind("createRequest", [w](const std::string &id,const std::string &req, void *){
+        std::thread([w, id, req](){
+            SQLite::Database db("requests,db", SQLite::OPEN_READWRITE);
+        }).detach();
+    }, nullptr);
+        w->run();
     return 0;
 }
