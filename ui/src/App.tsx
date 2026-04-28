@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Editor from '@monaco-editor/react'
 import './App.css'
 import ReqListSideBar from './components/ReqListSideBar'
 import ResNav from './components/ResNav'
@@ -17,18 +18,16 @@ function App() {
   const [responseData, setResponseData] = useState<{ body?: string; headers?: any } | null>(null)
   const [requestBody, setRequesBody] = useState<string>("")
 
-  const sendTabPlaceholders: Record<SendTab, string> = {
-    headers: 'Add headers... (e.g. Authorization: Bearer <token>)',
-    body: 'Add request body... (JSON, XML, text)',
-    params: 'Add query params... (e.g. page=1&limit=10)',
-  }
-
-  const responseTabPlaceholders: Record<ResponseTab, string> = {
-    body: 'Response body will appear here...',
-    headers: 'Response headers will appear here...',
-  }
-
-
+  const handleEditorWillMount = (monaco: any) => {
+    monaco.editor.defineTheme('custom-dark', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#00000000', // transparent background
+      },
+    });
+  };
 
   return (
     <>
@@ -75,43 +74,71 @@ function App() {
                 </select>
               </div>
             )}
-            <textarea
-              key={`request-${selectedRequest?.method}-${selectedRequest?.path}-${sendActiveTab}`}
-              placeholder={sendTabPlaceholders[sendActiveTab]}
-              value={selectedRequest ? (
-                sendActiveTab === 'headers'
-                  ? (typeof selectedRequest.headers === 'string' ? selectedRequest.headers : JSON.stringify(selectedRequest.headers, null, 2))
-                  : sendActiveTab === 'body'
-                    ? requestBody
-                    : ''
-              ) : ''}
-              onChange={(e)=> {
-                if (sendActiveTab === 'body') {
-                  setRequesBody(e.target.value)
-                }
-              }}
-              className="flex-1 bg-gray-800/50 text-gray-100 p-4 border-none focus:outline-none text-sm font-mono resize-none placeholder-gray-500"
-            />
+            <div className="flex-1 bg-gray-800/50 pt-2 pb-2">
+              <Editor
+                beforeMount={handleEditorWillMount}
+                key={`request-${selectedRequest?.method}-${selectedRequest?.path}-${sendActiveTab}`}
+                height="100%"
+                theme="custom-dark"
+                language={sendActiveTab === 'body' ? (bodyType === 'json' ? 'json' : bodyType === 'xml' ? 'xml' : 'plaintext') : 'json'}
+                value={selectedRequest ? (
+                  sendActiveTab === 'headers'
+                    ? (typeof selectedRequest.headers === 'string' ? selectedRequest.headers : JSON.stringify(selectedRequest.headers, null, 2))
+                    : sendActiveTab === 'body'
+                      ? requestBody
+                      : ''
+                ) : ''}
+                onChange={(value)=> {
+                  if (sendActiveTab === 'body') {
+                    setRequesBody(value || '')
+                  }
+                }}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 13,
+                  wordWrap: 'on',
+                  fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                  scrollBeyondLastLine: false,
+                }}
+              />
+            </div>
           </div>
           <div className="flex-1 flex flex-col border-t border-gray-700/50">
             <ResNav activeTab={responseActiveTab} onTabChange={setResponseActiveTab} />
-            <textarea
-              key={`response-${selectedRequest?.method}-${selectedRequest?.path}-${responseActiveTab}`}
-              readOnly
-              placeholder={responseTabPlaceholders[responseActiveTab]}
-              value={responseData ? (responseActiveTab === 'headers' ? (() => {
-                if (!responseData.headers) return '';
-                if (typeof responseData.headers === 'object') {
-                  return JSON.stringify(responseData.headers, null, 2);
-                }
-                try {
-                  return JSON.stringify(JSON.parse(responseData.headers), null, 2);
-                } catch {
-                  return String(responseData.headers);
-                }
-              })() : responseData.body || '') : ''}
-              className="flex-1 bg-gray-800/50 text-gray-300 p-4 border-none focus:outline-none text-sm font-mono resize-none placeholder-gray-500"
-            />
+            <div className="flex-1 bg-gray-800/50 pt-2 pb-2">
+              <Editor
+                beforeMount={handleEditorWillMount}
+                key={`response-${selectedRequest?.method}-${selectedRequest?.path}-${responseActiveTab}`}
+                height="100%"
+                theme="custom-dark"
+                language="json"
+                value={responseData ? (responseActiveTab === 'headers' ? (() => {
+                  if (!responseData.headers) return '';
+                  if (typeof responseData.headers === 'object') {
+                    return JSON.stringify(responseData.headers, null, 2);
+                  }
+                  try {
+                    return JSON.stringify(JSON.parse(responseData.headers), null, 2);
+                  } catch {
+                    return String(responseData.headers);
+                  }
+                })() : (() => {
+                  try {
+                    return typeof responseData.body === 'string' ? JSON.stringify(JSON.parse(responseData.body), null, 2) : String(responseData.body || '');
+                  } catch {
+                    return String(responseData.body || '');
+                  }
+                })()) : ''}
+                options={{
+                  readOnly: true,
+                  minimap: { enabled: false },
+                  fontSize: 13,
+                  wordWrap: 'on',
+                  fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                  scrollBeyondLastLine: false,
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
