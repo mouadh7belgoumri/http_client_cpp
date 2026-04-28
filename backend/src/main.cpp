@@ -90,7 +90,15 @@ int main(int, char **)
                 } }, nullptr);
     w->bind("createRequest", [w](const std::string &id,const std::string &req, void *){
         std::thread([w, id, req](){
+            json j = json::parse(req);
             SQLite::Database db("requests,db", SQLite::OPEN_READWRITE);
+            SQLite::Statement query (db, "insert into requests(method, path, headers, body) values(?, ?, ?, ?);");
+            query.bind(1, std::string(j[0]["method"]));
+            query.bind(2, std::string(j[0]["path"]));
+            query.bind(3, std::string(j[0]["headers"]));
+            query.bind(4, std::string(j[0]["body"]));
+            query.exec();
+            
         }).detach();
     }, nullptr);
         w->run();

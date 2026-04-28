@@ -16,6 +16,7 @@ declare global {
   interface Window {
     getRequests?: () => Promise<RequestCpp[]>;
     sendReq? : (request: RequestCpp) => Promise<ResponseCpp>;
+    createRequest? : (request : RequestCpp) => Promise<string>;
   }
 }
 
