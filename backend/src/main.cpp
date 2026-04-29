@@ -10,7 +10,8 @@
 #include <mutex>
 #include <format>
 using json = nlohmann::json;
-
+std::mutex db_mutex;
+std::mutex window_mutex;
 int main(int, char **)
 {
     auto w = std::make_shared<webview::webview>(false, nullptr);
@@ -22,9 +23,11 @@ int main(int, char **)
                           {
                              try
                              {
+                                 
+                                 std::lock_guard<std::mutex> lock(db_mutex);
                                  SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
                                  json j = json::array();
-                                 SQLite::Statement query{db, "SELECT method, path, headers, body FROM requests"};
+                                 SQLite::Statement query{db, "SELECT method, path, headers, body, stored FROM requests"};
                                  int i = 0;
                                  while (query.executeStep())
                                  {
@@ -33,11 +36,11 @@ int main(int, char **)
                                      req_json["path"] = query.getColumn(1).getString();
                                      req_json["headers"] = json::parse(query.getColumn(2).getString());
                                      req_json["body"] = json::parse(query.getColumn(3).getString());
+                                     req_json["stored"] = json::parse(query.getColumn(4).getString());
                                      j.push_back(req_json);
                                      i++;
-                                     
                                  }
-
+                                 std::lock_guard w_lck(window_mutex);
                                  w->dispatch([id, j, w]()
                                  {
                                      w->resolve(id, 0, j.dump());
@@ -47,6 +50,7 @@ int main(int, char **)
                              {
                                 std::cerr << e.what() << '\n';
                                 std::cout << "Error retrieving requests from database." << std::endl;
+                                std::lock_guard w_lck(window_mutex);
                                 w->dispatch([id, e, w]()
                                  {
                                      w->resolve(id, 1, std::string(e.what()));
@@ -78,6 +82,7 @@ int main(int, char **)
                         } else {
                             res_json["error"] = "Request failed";
                         }
+                        std::lock_guard w_lck(window_mutex);
                         w->dispatch([id, res_json, w]()
                         {
                             w->resolve(id, 0, res_json.dump());
@@ -88,19 +93,40 @@ int main(int, char **)
                 {
                     std::cerr << e.what() << '\n';
                 } }, nullptr);
-    w->bind("createRequest", [w](const std::string &id,const std::string &req, void *){
-        std::thread([w, id, req](){
-            json j = json::parse(req);
-            SQLite::Database db("requests,db", SQLite::OPEN_READWRITE);
-            SQLite::Statement query (db, "insert into requests(method, path, headers, body) values(?, ?, ?, ?);");
-            query.bind(1, std::string(j[0]["method"]));
-            query.bind(2, std::string(j[0]["path"]));
-            query.bind(3, std::string(j[0]["headers"]));
-            query.bind(4, std::string(j[0]["body"]));
-            query.exec();
-            
-        }).detach();
-    }, nullptr);
-        w->run();
+    w->bind("createRequest", [w](const std::string &id, const std::string &req, void *)
+            {
+                try
+                {
+                    std::thread([w, id, req]()
+                                {
+                                    json j = json::parse(req);
+                                    std::cout << j.dump(4) << std::endl;
+                                    
+                                    {
+                                    std::lock_guard<std::mutex> lock(db_mutex);
+                                    SQLite::Database db("requests,db", SQLite::OPEN_READWRITE);
+                                    SQLite::Statement query(db, "insert into requests(method, path, headers, body) values(?, ?, ?, ?);");
+                                    query.bind(1, std::string(j[0]["method"]));
+                                    query.bind(2, std::string(j[0]["path"]));
+                                    query.bind(3, std::string(j[0]["headers"]));
+                                    query.bind(4, std::string(j[0]["body"]));
+                                    query.exec();
+                                    }
+                                    std::lock_guard w_lck(window_mutex);
+                                    w->dispatch([id, req, w](){
+                                        w->resolve(id, 0, "added successfully");
+                                    });
+                                })
+                        .detach();
+                }
+                catch (const std::exception &e)
+                {
+                    std::cerr << e.what() << '\n';
+                    std::lock_guard w_lck(window_mutex);
+                    w->dispatch([id, req, w](){
+                        w->resolve(id, 0, "failed at inserting request");
+                    });
+                } }, nullptr);
+    w->run();
     return 0;
 }

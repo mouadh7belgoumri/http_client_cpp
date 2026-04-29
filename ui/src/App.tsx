@@ -17,6 +17,9 @@ function App() {
   const [selectedRequest, setSelectedRequest] = useState<RequestCpp | null>(null)
   const [responseData, setResponseData] = useState<{ body?: string; headers?: any } | null>(null)
   const [requestBody, setRequesBody] = useState<string>("")
+  const [createRequestResponse, setCreateRequestResponse] = useState<string>("")
+  console.log(createRequestResponse);
+  
 
   const handleEditorWillMount = (monaco: any) => {
     monaco.editor.defineTheme('custom-dark', {
@@ -31,12 +34,18 @@ function App() {
 
   return (
     <>
-      <div className="flex h-screen bg-linear-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100" key={`${selectedRequest?.method}-${selectedRequest?.path}`}>
+      <div className="flex h-screen bg-linear-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100">
         <ReqListSideBar onSelectRequest={setSelectedRequest} />
         <div className="flex-1 flex flex-col overflow-hidden shadow-2xl">
           <div className="flex-1 flex flex-col border-b border-gray-700/50">
-            <SendReqBar selectedRequest={selectedRequest} onSendRequest={() => {
-              if (selectedRequest && window.sendReq) {
+            <SendReqBar 
+              selectedRequest={selectedRequest} 
+              onRequestChange={(updatedReq) => {
+                setSelectedRequest(updatedReq);
+                // Depending on how you manage the global state of requests, you might also want to update the overall list of requests here.
+              }}
+              onSendRequest={() => {
+              if (selectedRequest && window.sendReq && window.createRequest) {
                 window.sendReq(selectedRequest)
                   .then((response) => {
                     setResponseData({
@@ -51,6 +60,12 @@ function App() {
                       headers: '',
                     });
                   });
+                if (selectedRequest.stored === 0) {
+                  window.createRequest(selectedRequest)
+                    .then((response) => {
+                      setCreateRequestResponse(response);
+                    });
+                }
               } else {
                 console.warn("sendReq function is not defined on window or no request selected");
               }
@@ -77,7 +92,6 @@ function App() {
             <div className="flex-1 bg-gray-800/50 pt-2 pb-2">
               <Editor
                 beforeMount={handleEditorWillMount}
-                key={`request-${selectedRequest?.method}-${selectedRequest?.path}-${sendActiveTab}`}
                 height="100%"
                 theme="custom-dark"
                 language={sendActiveTab === 'body' ? (bodyType === 'json' ? 'json' : bodyType === 'xml' ? 'xml' : 'plaintext') : 'json'}
@@ -88,7 +102,7 @@ function App() {
                       ? requestBody
                       : ''
                 ) : ''}
-                onChange={(value)=> {
+                onChange={(value) => {
                   if (sendActiveTab === 'body') {
                     setRequesBody(value || '')
                   }
@@ -108,7 +122,6 @@ function App() {
             <div className="flex-1 bg-gray-800/50 pt-2 pb-2">
               <Editor
                 beforeMount={handleEditorWillMount}
-                key={`response-${selectedRequest?.method}-${selectedRequest?.path}-${responseActiveTab}`}
                 height="100%"
                 theme="custom-dark"
                 language="json"

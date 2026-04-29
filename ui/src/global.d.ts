@@ -2,10 +2,11 @@ export { };
 
 declare global {
   interface RequestCpp {
-    method: string;
-    path: string;
-    headers: string;
-    body: string;
+    method: string = 'GET';
+    path: string = '/';
+    headers: string = '';
+    body: string = '';
+    stored : 0 | 1 = 0;
   }
 
   interface ResponseCpp {

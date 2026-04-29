@@ -30,6 +30,18 @@ function ReqListSideBar({ onSelectRequest }: ReqListSideBarProps) {
         onSelectRequest(req);
     };
 
+    const handleCreateNewRequest = () => {
+        const newRequest: RequestCpp = {
+            method: 'GET',
+            path: 'https://',
+            headers: '{}',
+            body: '',
+            stored: 0
+        };
+        setRequests((prev) => [newRequest, ...prev]);
+        handleSelectRequest(newRequest);
+    };
+
     const getMethodColor = (method: string) => {
         const colors: Record<string, string> = {
             'GET': 'bg-blue-500/10 text-blue-400 border-blue-500/30',
@@ -44,11 +56,12 @@ function ReqListSideBar({ onSelectRequest }: ReqListSideBarProps) {
     return (
         <>
             <div className="w-64 bg-gray-900/50 backdrop-blur-sm border-r border-gray-700/50 p-4 flex flex-col h-full shadow-xl">
-                <h2 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                <h2 className="text-xl font-bold mb-4 bg-linear-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                     Requests
                 </h2>
                 <button
-                    className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-4 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-blue-500/20 mb-4"
+                    onClick={handleCreateNewRequest}
+                    className="bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-4 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-blue-500/20 mb-4"
                 >
                     + New Request
                 </button>
