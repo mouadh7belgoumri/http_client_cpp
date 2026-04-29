@@ -24,7 +24,7 @@ int main(int, char **)
                              try
                              {
                                  
-                                 std::lock_guard<std::mutex> lock(db_mutex);
+                                 std::lock_guard<std::mutex> db_lock(db_mutex);
                                  SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
                                  json j = json::array();
                                  SQLite::Statement query{db, "SELECT method, path, headers, body, stored FROM requests"};
@@ -103,14 +103,17 @@ int main(int, char **)
                                     std::cout << j.dump(4) << std::endl;
                                     
                                     {
-                                    std::lock_guard<std::mutex> lock(db_mutex);
-                                    SQLite::Database db("requests,db", SQLite::OPEN_READWRITE);
-                                    SQLite::Statement query(db, "insert into requests(method, path, headers, body) values(?, ?, ?, ?);");
-                                    query.bind(1, std::string(j[0]["method"]));
-                                    query.bind(2, std::string(j[0]["path"]));
-                                    query.bind(3, std::string(j[0]["headers"]));
-                                    query.bind(4, std::string(j[0]["body"]));
-                                    query.exec();
+                                        std::lock_guard<std::mutex> db_lock(db_mutex);
+                                        std::cout << "point reached!" << std::endl;
+                                        SQLite::Database db("requests.db", SQLite::OPEN_READWRITE);
+                                        std::cout << "database file opened" << std::endl;
+                                        SQLite::Statement query(db, "insert into requests(method, path, headers, body) values(?, ?, ?, ?);");
+                                        query.bind(1, std::string(j[0]["method"]));
+                                        query.bind(2, std::string(j[0]["path"]));
+                                        query.bind(3, std::string(j[0]["headers"]));
+                                        std::string(j[0]["body"]).starts_with("{") ? j[0]["body"] : j[0]["body"] = "{}" ;
+                                        query.bind(4, std::string(j[0]["body"]));
+                                        query.exec();
                                     }
                                     std::lock_guard w_lck(window_mutex);
                                     w->dispatch([id, req, w](){
