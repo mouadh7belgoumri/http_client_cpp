@@ -2,9 +2,10 @@ interface SendReqBarProps {
     selectedRequest: RequestCpp | null;
     onSendRequest?: () => void;
     onRequestChange?: (updatedRequest: RequestCpp) => void;
+    isSendDisabled?: boolean;
 }
 
-function SendReqBar({ selectedRequest, onSendRequest, onRequestChange }: SendReqBarProps) {
+function SendReqBar({ selectedRequest, onSendRequest, onRequestChange, isSendDisabled }: SendReqBarProps) {
     return (
         <>
             <div className="p-4 border-b border-gray-700/50 space-y-3 bg-gray-800/20 backdrop-blur-sm">
@@ -39,7 +40,7 @@ function SendReqBar({ selectedRequest, onSendRequest, onRequestChange }: SendReq
                     />
                     <button 
                         onClick={onSendRequest}
-                        disabled={!selectedRequest}
+                        disabled={!selectedRequest || isSendDisabled}
                         className="bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Send

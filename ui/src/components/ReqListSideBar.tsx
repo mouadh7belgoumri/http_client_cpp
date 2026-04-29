@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
 
 interface ReqListSideBarProps {
-    onSelectRequest: (request: RequestCpp) => void;
+    onSelectRequest: (request: RequestCpp, index: number) => void;
+    syncRequest?: { index: number; request: RequestCpp } | null;
 }
 
-function ReqListSideBar({ onSelectRequest }: ReqListSideBarProps) {
+function ReqListSideBar({ onSelectRequest, syncRequest }: ReqListSideBarProps) {
     const [requests, setRequests] = useState<RequestCpp[]>([]);
-    const [selectedPath, setSelectedPath] = useState<string | null>(null);
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     
+    useEffect(() => {
+        if (syncRequest && syncRequest.index !== null && syncRequest.index >= 0 && requests[syncRequest.index]) {
+            setRequests(prev => {
+                const newReqs = [...prev];
+                newReqs[syncRequest.index] = syncRequest.request;
+                return newReqs;
+            });
+        }
+    }, [syncRequest]);
+
     useEffect(() => {
         const fetchRequests = async () => {
             if (window.getRequests) {
@@ -25,9 +36,9 @@ function ReqListSideBar({ onSelectRequest }: ReqListSideBarProps) {
         fetchRequests();
     }, []);
     
-    const handleSelectRequest = (req: RequestCpp) => {
-        setSelectedPath(req.path);
-        onSelectRequest(req);
+    const handleSelectRequest = (req: RequestCpp, index: number) => {
+        setSelectedIndex(index);
+        onSelectRequest(req, index);
     };
 
     const handleCreateNewRequest = () => {
@@ -39,7 +50,7 @@ function ReqListSideBar({ onSelectRequest }: ReqListSideBarProps) {
             stored: 0
         };
         setRequests((prev) => [newRequest, ...prev]);
-        handleSelectRequest(newRequest);
+        handleSelectRequest(newRequest, 0); // newly prepended request is at index 0
     };
 
     const getMethodColor = (method: string) => {
@@ -71,9 +82,9 @@ function ReqListSideBar({ onSelectRequest }: ReqListSideBarProps) {
                         {requests.map((req, index) => (
                             <li key={index}>
                                 <button
-                                    onClick={() => handleSelectRequest(req)}
+                                    onClick={() => handleSelectRequest(req, index)}
                                     className={`w-full text-left p-3 rounded-lg transition-all duration-200 border flex items-center gap-2 group ${
-                                        selectedPath === req.path
+                                        selectedIndex === index
                                             ? 'bg-gray-800 border-blue-500/50 shadow-lg shadow-blue-500/10'
                                             : 'bg-gray-800/40 border-gray-700/30 hover:bg-gray-800/60 hover:border-gray-600/50'
                                     }`}

@@ -15,11 +15,33 @@ function App() {
   const [responseActiveTab, setResponseActiveTab] = useState<ResponseTab>('body')
   const [bodyType, setBodyType] = useState<BodyType>('json')
   const [selectedRequest, setSelectedRequest] = useState<RequestCpp | null>(null)
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+  const [syncSideBarReq, setSyncSideBarReq] = useState<{ index: number; request: RequestCpp } | null>(null)
   const [responseData, setResponseData] = useState<{ body?: string; headers?: any } | null>(null)
   const [requestBody, setRequesBody] = useState<string>("")
   const [createRequestResponse, setCreateRequestResponse] = useState<string>("")
   console.log(createRequestResponse);
   
+
+  let isSyntaxValid = true;
+  if (bodyType === 'json' && requestBody.trim() !== '') {
+    try {
+      JSON.parse(requestBody);
+    } catch {
+      isSyntaxValid = false;
+    }
+  } else if (bodyType === 'xml' && requestBody.trim() !== '') {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(requestBody, "application/xml");
+      const errorNode = doc.querySelector("parsererror");
+      if (errorNode) {
+        isSyntaxValid = false;
+      }
+    } catch {
+      isSyntaxValid = false;
+    }
+  }
 
   const handleEditorWillMount = (monaco: any) => {
     monaco.editor.defineTheme('custom-dark', {
@@ -35,17 +57,28 @@ function App() {
   return (
     <>
       <div className="flex h-screen bg-linear-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100">
-        <ReqListSideBar onSelectRequest={setSelectedRequest} />
+        <ReqListSideBar 
+          onSelectRequest={(req, index) => {
+            setSelectedRequest(req);
+            setSelectedIndex(index);
+          }} 
+          syncRequest={syncSideBarReq}
+        />
         <div className="flex-1 flex flex-col overflow-hidden shadow-2xl">
           <div className="flex-1 flex flex-col border-b border-gray-700/50">
             <SendReqBar 
+              isSendDisabled={!isSyntaxValid}
               selectedRequest={selectedRequest} 
               onRequestChange={(updatedReq) => {
                 setSelectedRequest(updatedReq);
-                // Depending on how you manage the global state of requests, you might also want to update the overall list of requests here.
               }}
               onSendRequest={() => {
               if (selectedRequest && window.sendReq && window.createRequest) {
+                // Update Sidebar immediately with latest edited details
+                if (selectedIndex !== null) {
+                  setSyncSideBarReq({ index: selectedIndex, request: selectedRequest });
+                }
+
                 window.sendReq(selectedRequest)
                   .then((response) => {
                     setResponseData({
