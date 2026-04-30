@@ -59,8 +59,14 @@ function App() {
       <div className="flex h-screen bg-linear-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100">
         <ReqListSideBar 
           onSelectRequest={(req, index) => {
-            setSelectedRequest(req);
-            setSelectedIndex(index);
+            if (req) {
+              setSelectedRequest(req);
+              setSelectedIndex(index);
+            } else {
+              // when a request gets deleted and it's the selected one
+              setSelectedRequest(null);
+              setSelectedIndex(null);
+            }
           }} 
           syncRequest={syncSideBarReq}
         />

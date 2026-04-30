@@ -27,19 +27,20 @@ int main(int, char **)
                                  std::lock_guard<std::mutex> db_lock(db_mutex);
                                  SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
                                  json j = json::array();
-                                 SQLite::Statement query{db, "SELECT method, path, headers, body, stored FROM requests"};
+                                 SQLite::Statement query{db, "SELECT id, method, path, headers, body, stored FROM requests"};
                                  int i = 0;
                                  while (query.executeStep())
                                  {
                                      json req_json;
-                                     req_json["method"] = query.getColumn(0).getString();
-                                     req_json["path"] = query.getColumn(1).getString();
-                                     req_json["headers"] = json::parse(query.getColumn(2).getString());
-                                     req_json["body"] = json::parse(query.getColumn(3).getString());
-                                     req_json["stored"] = json::parse(query.getColumn(4).getString());
+                                     req_json["id"] = query.getColumn(0).getString();
+                                     req_json["method"] = query.getColumn(1).getString();
+                                     req_json["path"] = query.getColumn(2).getString();
+                                     req_json["headers"] = json::parse(query.getColumn(3).getString());
+                                     req_json["body"] = json::parse(query.getColumn(4).getString());
+                                     req_json["stored"] = json::parse(query.getColumn(5).getString());
                                      j.push_back(req_json);
                                      i++;
-                                 }
+                                 }                                 
                                  std::lock_guard w_lck(window_mutex);
                                  w->dispatch([id, j, w]()
                                  {
@@ -130,6 +131,32 @@ int main(int, char **)
                         w->resolve(id, 0, "failed at inserting request");
                     });
                 } }, nullptr);
+    w->bind("deleteRequest", [w](const std::string &id, const std::string &req, void *)
+            {
+                try
+                {
+                    std::thread([w, id, req]
+                                {
+                                    json j = json::parse(req);
+                                    auto req_id = stoi(std::string(j[0]));
+                                    std::lock_guard db_lck(db_mutex);
+                                    SQLite::Database db("requests.db", SQLite::OPEN_READWRITE);
+                                    SQLite::Statement query(db, "delete from requests where id = ?");
+                                    query.bind(1, req_id);
+                                    query.exec();
+                                    std::lock_guard w_lck(window_mutex);
+                                    w->dispatch([id, w, req](){
+                                        w->resolve(id, 0, "");
+                                    });
+                                })
+                        .detach();
+                }
+                catch (const std::exception &e)
+                {
+                    std::cerr << e.what() << '\n';
+                }
+            },
+            nullptr);
     w->run();
     return 0;
 }

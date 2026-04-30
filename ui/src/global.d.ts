@@ -2,6 +2,7 @@ export { };
 
 declare global {
   interface RequestCpp {
+    id?: number;
     method: string = 'GET';
     path: string = '/';
     headers: string = '';
@@ -18,6 +19,7 @@ declare global {
     getRequests?: () => Promise<RequestCpp[]>;
     sendReq? : (request: RequestCpp) => Promise<ResponseCpp>;
     createRequest? : (request : RequestCpp) => Promise<string>;
+    deleteRequest? : (id: number) => Promise<void>;
   }
 }
 
