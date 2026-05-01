@@ -20,6 +20,7 @@ declare global {
     sendReq? : (request: RequestCpp) => Promise<ResponseCpp>;
     createRequest? : (request : RequestCpp) => Promise<string>;
     deleteRequest? : (id: number) => Promise<void>;
+    updateRequest? : (request : RequestCpp) => Promise<void>;
   }
 }
 

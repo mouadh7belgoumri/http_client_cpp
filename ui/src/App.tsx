@@ -105,6 +105,9 @@ function App() {
                       setCreateRequestResponse(response);
                     });
                 }
+                else if(window.updateRequest){
+                  window.updateRequest(selectedRequest).then(() => {});
+                }
               } else {
                 console.warn("sendReq function is not defined on window or no request selected");
               }
