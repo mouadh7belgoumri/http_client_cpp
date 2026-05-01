@@ -131,14 +131,14 @@ int main(int, char **)
                         w->resolve(id, 0, "failed at inserting request");
                     });
                 } }, nullptr);
-    w->bind("deleteRequest", [w](const std::string &id, const std::string &req, void *)
+    w->bind("deleteRequest", [w](const std::string &id, const std::string &req, void *) -> void
             {
                 try
                 {
                     std::thread([w, id, req]
                                 {
                                     json j = json::parse(req);
-                                    auto req_id = stoi(std::string(j[0]));
+                                    auto req_id = stoi(j[0].get<std::string>());
                                     std::lock_guard db_lck(db_mutex);
                                     SQLite::Database db("requests.db", SQLite::OPEN_READWRITE);
                                     SQLite::Statement query(db, "delete from requests where id = ?");
@@ -153,10 +153,34 @@ int main(int, char **)
                 }
                 catch (const std::exception &e)
                 {
-                    std::cerr << e.what() << '\n';
+                    w->dispatch([id, w, req, &e](){
+                        w->resolve(id, 0, e.what());
+                    });
                 }
             },
             nullptr);
+    w->bind("updateRequest", [w](const std::string &id, const std::string &req, void*) -> void {
+        try
+        {
+            std::thread([w, id, req](){
+                json j = json::parse(req);
+                std::lock_guard db_lck(db_mutex);
+                SQLite::Database db("requests.db");
+                SQLite::Statement query(db, "update requests where id = ? set body = ?, method = ?, path = ?, headers = ?");
+                query.bind(1, j[0]["id"].get<std::string>());
+                query.bind(2, j[0]["body"].get<std::string>());
+                query.bind(3, j[0]["method"].get<std::string>());
+                query.bind(4, j[0]["path"].get<std::string>());
+                query.bind(5, j[0]["headers"].get<std::string>());
+                query.exec();
+            });
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        
+    }, nullptr);
     w->run();
     return 0;
 }
