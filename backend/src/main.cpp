@@ -166,15 +166,16 @@ int main(int, char **)
             std::thread([w, id, req](){
                 json j = json::parse(req);
                 std::lock_guard db_lck(db_mutex);
-                SQLite::Database db("requests.db");
+                SQLite::Database db("requests.db", SQLite::OPEN_READWRITE);
                 SQLite::Statement query(db, "update requests set body = ?, method = ?, path = ?, headers = ? where id = ?;");
                 std::cout << j[0]["method"].get<std::string>() << std::endl;
-                std::cout << "reached here!" << std::endl;
-                query.bind(1, std::string(j[0]["body"]));
-                query.bind(2, std::string(j[0]["method"]));
-                query.bind(3, std::string(j[0]["path"]));
-                query.bind(4, std::string(j[0]["headers"]));
-                query.bind(5, std::string(j[0]["id"]));
+                std::cout << j[0]["body"].dump() << std::endl;
+
+                query.bind(1, j[0]["body"].dump());
+                query.bind(2, j[0]["method"].dump());
+                query.bind(3, j[0]["path"].dump());
+                query.bind(4, j[0]["headers"].dump());
+                query.bind(5, j[0]["id"].dump());
                 query.exec();
                 w->dispatch([w, id](){
                     w->resolve(id, 0, "");
