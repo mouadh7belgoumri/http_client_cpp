@@ -75,7 +75,26 @@ int main(int, char **)
                         auto route = std::string(url -> get_pathname());
                         std::cout << route << std::endl;
                         //TODO add logic to send request according the method value
-                        auto res = cli.Get(route);
+                        httplib::Result res;
+                        if (req_json[0]["method"] == "GET") 
+                        {
+                            res = cli.Get(route);
+                        }else if (req_json[0]["method"] == "POST")
+                        {
+                            res = cli.Post(route);
+                        }
+                        else if (req_json[0]["method"] == "DELETE")
+                        {
+                            res = cli.Delete(route);
+                        }
+                        else if (req_json[0]["method"] == "PUT")
+                        {
+                            res = cli.Put(route);
+                        }
+                        
+                        
+                        
+                        
                         json res_json;
                         if (res) {
                             res_json["status"] = res->status;
