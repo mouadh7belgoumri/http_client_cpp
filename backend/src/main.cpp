@@ -81,15 +81,15 @@ int main(int, char **)
                             res = cli.Get(route);
                         }else if (req_json[0]["method"] == "POST")
                         {
-                            res = cli.Post(route);
+                            res = cli.Post(route, req_json[0]["body"].dump(), "appilcation/json");
                         }
                         else if (req_json[0]["method"] == "DELETE")
                         {
-                            res = cli.Delete(route);
+                            res = cli.Delete(route, req_json[0]["id"].dump(), "appilcation/json");
                         }
                         else if (req_json[0]["method"] == "PUT")
                         {
-                            res = cli.Put(route);
+                            res = cli.Put(route, req_json[0]["body"].dump(), "appilcation/json");
                         }
                         
                         
