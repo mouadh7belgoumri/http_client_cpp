@@ -120,14 +120,10 @@ int main(int, char **)
                 {
                     std::thread([w, id, req]()
                                 {
-                                    json j = json::parse(req);
-                                    std::cout << j.dump(4) << std::endl;
-                                    
+                                    json j = json::parse(req);                                    
                                     {
                                         std::lock_guard<std::mutex> db_lock(db_mutex);
-                                        std::cout << "point reached!" << std::endl;
                                         SQLite::Database db("requests.db", SQLite::OPEN_READWRITE);
-                                        std::cout << "database file opened" << std::endl;
                                         SQLite::Statement query(db, "insert into requests(method, path, headers, body) values(?, ?, ?, ?);");
                                         query.bind(1, std::string(j[0]["method"]));
                                         query.bind(2, std::string(j[0]["path"]));
