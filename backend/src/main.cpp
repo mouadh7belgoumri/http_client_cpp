@@ -73,8 +73,7 @@ int main(int, char **)
                         auto origin = url -> get_origin(); 
                         httplib::Client cli(origin);
                         auto route = std::string(url -> get_pathname());
-                        std::cout << route << std::endl;
-                        //TODO add logic to send request according the method value
+                        //TODO improve logic to send request according the method value (maintainable and scalable)
                         httplib::Result res;
                         if (req_json[0]["method"] == "GET") 
                         {
@@ -128,7 +127,7 @@ int main(int, char **)
                                         query.bind(1, std::string(j[0]["method"]));
                                         query.bind(2, std::string(j[0]["path"]));
                                         query.bind(3, std::string(j[0]["headers"]));
-                                        std::string(j[0]["body"]).starts_with("{") ? j[0]["body"] : j[0]["body"] = "{}" ;
+                                        std::string(j[0]["body"]).starts_with("{") ? j[0]["body"] : j[0]["body"] = "{}";
                                         query.bind(4, std::string(j[0]["body"]));
                                         query.exec();
                                     }

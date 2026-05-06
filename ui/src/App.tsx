@@ -18,8 +18,9 @@ function App() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [syncSideBarReq, setSyncSideBarReq] = useState<{ index: number; request: RequestCpp } | null>(null)
   const [responseData, setResponseData] = useState<{ body?: string; headers?: any } | null>(null)
-  const [requestBody, setRequesBody] = useState<string>("")
+  const [requestBody, _] = useState<string>("")
   const [createRequestResponse, setCreateRequestResponse] = useState<string>("")
+
   console.log(createRequestResponse);
   
 
@@ -145,8 +146,8 @@ function App() {
                       : ''
                 ) : ''}
                 onChange={(value) => {
-                  if (sendActiveTab === 'body') {
-                    setRequesBody(value || '')
+                  if (sendActiveTab === 'body' && selectedRequest) {
+                    setSelectedRequest({ ...selectedRequest, body: value || "" });
                   }
                 }}
                 options={{
