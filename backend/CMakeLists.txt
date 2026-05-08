@@ -6,6 +6,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include(FetchContent)
 find_package(SQLiteCpp CONFIG REQUIRED)
 find_package(ada-url)
+find_package(OpenSSL REQUIRED)
 
 
 
@@ -23,7 +24,7 @@ FetchContent_MakeAvailable(json)
 
 
 add_executable(desktop_backend src/main.cpp)
-target_link_libraries(desktop_backend PRIVATE webview::core nlohmann_json::nlohmann_json SQLiteCpp ada )
+target_link_libraries(desktop_backend PRIVATE webview::core nlohmann_json::nlohmann_json SQLiteCpp ada OpenSSL::SSL OpenSSL::Crypto)
 
 
 include(CTest)

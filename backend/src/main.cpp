@@ -1,4 +1,5 @@
 #include <iostream>
+#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "../include/httplib.h"
 #include <webview/webview.h>
 #include "../lib/index_html.h"
