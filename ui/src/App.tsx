@@ -42,7 +42,7 @@ function App() {
     } catch {
       isSyntaxValid = false;
     }
-  }
+  };
 
   const handleEditorWillMount = (monaco: any) => {
     monaco.editor.defineTheme('custom-dark', {
