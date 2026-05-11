@@ -7,10 +7,13 @@ private:
     std::shared_ptr<webview::webview> m_window;
 public:
     binding() =delete;
-    binding(webview::webview);
-    ~binding();
-    binding operator=(binding) =delete;
-    binding operator()(std::string, std::string, void*)
+    binding(const binding&) =delete;
+    binding(binding&&) =delete;
+    binding(std::shared_ptr<webview::webview> w): m_window{w}{};
+    ~binding(){};
+    binding operator=(const binding&) =delete;
+    binding operator=(binding&&) =delete;
+    binding operator()(std::string, std::string, void*);
 };
 
 

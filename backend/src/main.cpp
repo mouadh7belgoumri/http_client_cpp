@@ -9,7 +9,9 @@
 #include <memory>
 #include <ada.h>
 #include <mutex>
-#include <format>
+#include "../lib/binding.h"
+
+
 using json = nlohmann::json;
 std::mutex db_mutex;
 std::mutex window_mutex;
