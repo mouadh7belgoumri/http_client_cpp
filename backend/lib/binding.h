@@ -66,4 +66,7 @@ void getRequests::operator()(std::string id, std::string req, void *args)
                              } })
         .detach();
 }
+std::shared_ptr<webview::webview> w;
+getRequests g(w);
+auto g1 = std::function<void(std::string, std::string, void*)>(g);
 #endif
