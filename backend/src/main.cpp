@@ -18,6 +18,8 @@ std::mutex window_mutex;
 int main(int, char **)
 {
     auto w = std::make_shared<webview::webview>(false, nullptr);
+    getRequests g(w);
+    // getRequests g1 =g;
     w->set_title("http_client_cpp");
     w->set_size(1200, 900, WEBVIEW_HINT_NONE);
     w->set_html(html);

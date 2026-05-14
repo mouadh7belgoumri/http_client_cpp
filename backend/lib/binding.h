@@ -3,22 +3,21 @@
 #include <webview/webview.h>
 
 class binding {
-    private:
-        std::shared_ptr<webview::webview> m_window;
-
     public:
-        binding() =delete;
         binding(const binding&) =delete;
-        binding(binding&&) =delete;
-        binding(std::shared_ptr<webview::webview>);
-        ~binding() =default;
         binding operator=(const binding&) =delete;
         binding operator=(binding&&) =delete;
-        void operator()(std::string, std::string, void*); 
+        virtual void operator()(std::string, std::string, void*) =0; 
 };
+
 
 class getRequests : public binding{
-    
+    private:
+        std::shared_ptr<webview::webview> m_window;
+    public:
+        getRequests() =delete;
+        getRequests(std::shared_ptr<webview::webview> w);
+        getRequests(const getRequests&);
+        void operator()(std::string, std::string, void*){}
 };
-
 #endif
