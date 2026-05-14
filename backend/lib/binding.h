@@ -18,6 +18,9 @@ class getRequests : public binding{
         getRequests() =delete;
         getRequests(std::shared_ptr<webview::webview> w);
         getRequests(const getRequests&);
-        void operator()(std::string, std::string, void*){}
+        void operator()(std::string, std::string, void*)override;
 };
+void getRequests::operator()(std::string id, std::string req, void* args){
+    
+}
 #endif
