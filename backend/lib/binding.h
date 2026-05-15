@@ -26,7 +26,8 @@ public:
 getRequests::getRequests(std::shared_ptr<webview::webview> w):m_window{w}{}
 void getRequests::operator()(std::string id, std::string req, void *args)
 {
-    std::thread([this, id, req]()
+    auto m_window_copy = m_window;
+    std::thread([m_window_copy, id, req]()
                 {
                              try
                              {
@@ -49,9 +50,9 @@ void getRequests::operator()(std::string id, std::string req, void *args)
                                      i++;
                                  }                                 
                                  std::lock_guard w_lck(window_mutex);
-                                 m_window->dispatch([this, id, j]()
+                                 m_window_copy->dispatch([m_window_copy, id, j]()
                                  {
-                                     m_window->resolve(id, 0, j.dump());
+                                     m_window_copy->resolve(id, 0, j.dump());
                                  });
                              }
                              catch (const std::exception& e)
@@ -59,14 +60,15 @@ void getRequests::operator()(std::string id, std::string req, void *args)
                                 std::cerr << e.what() << '\n';
                                 std::cout << "Error retrieving requests from database." << std::endl;
                                 std::lock_guard w_lck(window_mutex);
-                                m_window->dispatch([id, e, this]()
+                                m_window_copy->dispatch([id, e, m_window_copy]()
                                  {
-                                     m_window->resolve(id, 1, std::string(e.what()));
+                                     m_window_copy->resolve(id, 1, std::string(e.what()));
                                  });
                              } })
         .detach();
 }
-std::shared_ptr<webview::webview> w;
-getRequests g(w);
-auto g1 = std::function<void(std::string, std::string, void*)>(g);
+getRequests::getRequests(const getRequests& b):m_window{b.m_window}{}
+
+
+
 #endif
