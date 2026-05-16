@@ -23,8 +23,22 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 
 
-add_executable(desktop_backend src/main.cpp)
-target_link_libraries(desktop_backend PRIVATE webview::core nlohmann_json::nlohmann_json SQLiteCpp ada OpenSSL::SSL OpenSSL::Crypto)
+add_library(webrocketlib)
+target_sources(webrocketlib
+    PRIVATE
+        ./src/getRequests.cpp
+    PUBLIC
+    FILE_SET HEADERS
+    BASE_DIRS
+        ./lib
+    FILES
+        lib/binding.h
+        lib/getRequests.h
+
+)
+
+add_executable(desktop_backend src/main.cpp )
+target_link_libraries(desktop_backend PRIVATE webview::core nlohmann_json::nlohmann_json SQLiteCpp ada OpenSSL::SSL OpenSSL::Crypto webrocketlib)
 
 
 include(CTest)
