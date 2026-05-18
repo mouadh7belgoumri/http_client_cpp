@@ -15,7 +15,7 @@
 using json = nlohmann::json;
 std::mutex db_mutex;
 std::mutex window_mutex;
-#include "../lib/binding.h"
+#include "../lib/getRequests.h"
 int main(int, char **)
 {
     auto w = std::make_shared<webview::webview>(false, nullptr);

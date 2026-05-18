@@ -1,6 +1,9 @@
 #ifndef GETREQUESTS_H
 #define GETREQUESTS_H
 #include <webview/webview.h>
+#include <thread>
+#include <mutex>
+
 #include "./binding.h"
 
 class getRequests : public binding

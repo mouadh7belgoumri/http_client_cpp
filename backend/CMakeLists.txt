@@ -36,6 +36,8 @@ target_sources(webrocketlib
         lib/getRequests.h
 
 )
+target_link_libraries(webrocketlib PUBLIC webview::core)
+
 
 add_executable(desktop_backend src/main.cpp )
 target_link_libraries(desktop_backend PRIVATE webview::core nlohmann_json::nlohmann_json SQLiteCpp ada OpenSSL::SSL OpenSSL::Crypto webrocketlib)
