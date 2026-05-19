@@ -10,8 +10,8 @@ getRequests::getRequests(std::shared_ptr<webview::webview> w, std::mutex& window
 void getRequests::operator()(std::string id, std::string req, void *args)
 {
     auto m_window_copy = m_window;
-    const std::mutex& db_mutex_copy = db_mutex;
-    const std::mutex& w_mutex_copy = w_mutex;
+    std::mutex& db_mutex_copy = db_mutex;
+    std::mutex& w_mutex_copy = w_mutex;
     std::thread([m_window_copy, &db_mutex_copy, &w_mutex_copy, id, req]()
                 {
                              try

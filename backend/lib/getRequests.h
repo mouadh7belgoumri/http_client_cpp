@@ -10,8 +10,8 @@ class getRequests : public binding
 {
 private:
     std::shared_ptr<webview::webview> m_window;
-    const std::mutex& w_mutex;
-    const std::mutex& db_mutex;
+    std::mutex& w_mutex;
+    std::mutex& db_mutex;
 
 public:
     getRequests() = delete;
