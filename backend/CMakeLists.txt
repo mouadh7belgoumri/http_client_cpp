@@ -36,7 +36,7 @@ target_sources(webrocketlib
         lib/getRequests.h
 
 )
-target_link_libraries(webrocketlib PUBLIC webview::core)
+target_link_libraries(webrocketlib PUBLIC webview::core nlohmann_json::nlohmann_json SQLiteCpp)
 
 
 add_executable(desktop_backend src/main.cpp )

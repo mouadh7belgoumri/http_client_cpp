@@ -10,10 +10,12 @@ class getRequests : public binding
 {
 private:
     std::shared_ptr<webview::webview> m_window;
+    std::mutex w_mutex;
+    std::mutex db_mutex;
 
 public:
     getRequests() = delete;
-    getRequests(std::shared_ptr<webview::webview>);
+    getRequests(std::shared_ptr<webview::webview>, std::mutex, std::mutex);
     getRequests(const getRequests &);
     void operator()(std::string, std::string, void *) override;
 };

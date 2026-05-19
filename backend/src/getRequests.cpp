@@ -1,8 +1,11 @@
+#include <nlohmann/json.hpp>
+#include <SQLiteCpp/SQLiteCpp.h>
 #include "../lib/getRequests.h"
+using json = nlohmann::json;
 
 
-
-getRequests::getRequests(std::shared_ptr<webview::webview> w):m_window{w}{}
+getRequests::getRequests(std::shared_ptr<webview::webview> w, std::mutex window_mutex, std::mutex database_mutex)
+    :m_window{w}, w_mutex{window_mutex}, db_mutex{database_mutex}{}
 void getRequests::operator()(std::string id, std::string req, void *args)
 {
     auto m_window_copy = m_window;
