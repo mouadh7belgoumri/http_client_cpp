@@ -1,20 +1,23 @@
+#include <iostream>
 #include <nlohmann/json.hpp>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include "../lib/getRequests.h"
 using json = nlohmann::json;
 
 
-getRequests::getRequests(std::shared_ptr<webview::webview> w, std::mutex window_mutex, std::mutex database_mutex)
+getRequests::getRequests(std::shared_ptr<webview::webview> w, std::mutex& window_mutex, std::mutex &database_mutex)
     :m_window{w}, w_mutex{window_mutex}, db_mutex{database_mutex}{}
 void getRequests::operator()(std::string id, std::string req, void *args)
 {
     auto m_window_copy = m_window;
-    std::thread([m_window_copy, id, req]()
+    const std::mutex& db_mutex_copy = db_mutex;
+    const std::mutex& w_mutex_copy = w_mutex;
+    std::thread([m_window_copy, &db_mutex_copy, &w_mutex_copy, id, req]()
                 {
                              try
                              {
                                  
-                                 std::lock_guard<std::mutex> db_lock(db_mutex);
+                                 std::lock_guard<std::mutex> db_lock(db_mutex_copy);
                                  SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
                                  json j = json::array();
                                  SQLite::Statement query{db, "SELECT id, method, path, headers, body, stored FROM requests"};
@@ -31,7 +34,7 @@ void getRequests::operator()(std::string id, std::string req, void *args)
                                      j.push_back(req_json);
                                      i++;
                                  }                                 
-                                 std::lock_guard w_lck(window_mutex);
+                                 std::lock_guard w_lck(w_mutex_copy);
                                  m_window_copy->dispatch([m_window_copy, id, j]()
                                  {
                                      m_window_copy->resolve(id, 0, j.dump());
@@ -41,7 +44,7 @@ void getRequests::operator()(std::string id, std::string req, void *args)
                              {
                                 std::cerr << e.what() << '\n';
                                 std::cout << "Error retrieving requests from database." << std::endl;
-                                std::lock_guard w_lck(window_mutex);
+                                std::lock_guard w_lck(w_mutex_copy);
                                 m_window_copy->dispatch([id, e, m_window_copy]()
                                  {
                                      m_window_copy->resolve(id, 1, std::string(e.what()));
@@ -49,4 +52,6 @@ void getRequests::operator()(std::string id, std::string req, void *args)
                              } })
         .detach();
 }
-getRequests::getRequests(const getRequests& b):m_window{b.m_window}{}
+
+
+getRequests::getRequests(const getRequests& g):w_mutex(g.w_mutex), db_mutex(g.db_mutex){std::cout << "hello world\n";}

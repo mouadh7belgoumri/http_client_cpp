@@ -9,20 +9,20 @@
 #include <memory>
 #include <ada.h>
 #include <mutex>
-
-
+#include "../lib/getRequests.h"
 
 using json = nlohmann::json;
 std::mutex db_mutex;
 std::mutex window_mutex;
-#include "../lib/getRequests.h"
+
+
 int main(int, char **)
 {
     auto w = std::make_shared<webview::webview>(false, nullptr);
     w->set_title("http_client_cpp");
     w->set_size(1200, 900, WEBVIEW_HINT_NONE);
     w->set_html(html);
-    w->bind("getRequests", getRequests(w), nullptr);
+    w->bind("getRequests", getRequests(w, window_mutex, db_mutex), nullptr);
     w->bind("sendReq", [w](const std::string &id, const std::string &req, void *)
             {
                 try
