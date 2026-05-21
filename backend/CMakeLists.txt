@@ -27,6 +27,7 @@ add_library(webrocketlib)
 target_sources(webrocketlib
     PRIVATE
         ./src/getRequests.cpp
+        ./src/bindingManager.cpp
     PUBLIC
     FILE_SET HEADERS
     BASE_DIRS
@@ -34,6 +35,7 @@ target_sources(webrocketlib
     FILES
         lib/binding.h
         lib/getRequests.h
+        lib/bindingManager.h
 
 )
 target_link_libraries(webrocketlib PUBLIC webview::core nlohmann_json::nlohmann_json SQLiteCpp)

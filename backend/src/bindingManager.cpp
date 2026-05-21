@@ -2,12 +2,12 @@
 #include "../lib/bindingManager.h"
 
 void bindingManager::getRequests(const std::string& id, const std::string& req, void* arg){
-    std::thread([m_window_mutex, &db_mutex_copy, &w_mutex_copy, id, req]()
+    std::thread([m_window, m_window_mutex, m_db_mutex, id, req]()
                 {
                              try
                              {
                                  
-                                 std::lock_guard<std::mutex> db_lock(db_mutex_copy);
+                                 std::lock_guard<std::mutex> db_lock(m_db_mutex);
                                  SQLite::Database db{"requests.db", SQLite::OPEN_READONLY};
                                  json j = json::array();
                                  SQLite::Statement query{db, "SELECT id, method, path, headers, body, stored FROM requests"};
@@ -25,9 +25,9 @@ void bindingManager::getRequests(const std::string& id, const std::string& req, 
                                      i++;
                                  }                                 
                                  std::lock_guard w_lck(w_mutex_copy);
-                                 m_window_copy->dispatch([m_window_copy, id, j]()
+                                 m_window->dispatch([m_window, id, j]()
                                  {
-                                     m_window_copy->resolve(id, 0, j.dump());
+                                     m_window->resolve(id, 0, j.dump());
                                  });
                              }
                              catch (const std::exception& e)
@@ -35,9 +35,9 @@ void bindingManager::getRequests(const std::string& id, const std::string& req, 
                                 std::cerr << e.what() << '\n';
                                 std::cout << "Error retrieving requests from database." << std::endl;
                                 std::lock_guard w_lck(w_mutex_copy);
-                                m_window_copy->dispatch([id, e, m_window_copy]()
+                                m_window->dispatch([id, e, m_window]()
                                  {
-                                     m_window_copy->resolve(id, 1, std::string(e.what()));
+                                     m_window->resolve(id, 1, std::string(e.what()));
                                  });
                              } })
         .detach();
