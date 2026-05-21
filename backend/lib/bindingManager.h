@@ -7,13 +7,14 @@
 class bindingManager
 {
 private:
-    webview::webview m_window;
+    std::shared_ptr<webview::webview> m_window;
     std::mutex m_window_mutex;
     std::mutex m_db_mutex;
 public:
     bindingManager();
     ~bindingManager();
     void getRequests(const std::string&,const std::string&, void*);
+    void getRequestsWorker(const std::string&,const std::string&, void*);
 };
 
 #endif
