@@ -42,6 +42,6 @@ void bindingManager::getRequestsWorker(const std::string &id, const std::string 
 }
 void bindingManager::getRequests(const std::string &id, const std::string &req, void *arg)
 {
-    std::thread t{this->getRequestsWorker,ref(id)};
-    t.detach();
+    // std::thread t{this->getRequestsWorker,ref(id)};
+    // t.detach();
 }
