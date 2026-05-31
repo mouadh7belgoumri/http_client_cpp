@@ -3,6 +3,8 @@
 #include <nlohmann/json.hpp>
 #include "../lib/bindingManager.h"
 using json = nlohmann::json;
+bindingManager::bindingManager(){}
+bindingManager::~bindingManager(){}
 void bindingManager::getRequestsWorker(const std::string &id, const std::string &req, void *arg)
 {
     {
